@@ -489,53 +489,68 @@ window.NocExecutiveDashboard = (function() {
 			timer = null;
 		}
 
-		h2c(target, {
-			backgroundColor: '#0d1117',
-			scale: 2,
-			useCORS: true,
-			logging: false,
-			windowWidth: target.scrollWidth,
-			windowHeight: target.scrollHeight
-		}).then(function(canvas) {
-			const pdf = new JsPDF({orientation: 'landscape', unit: 'pt', format: 'a4'});
-			const pageW = pdf.internal.pageSize.getWidth();
-			const pageH = pdf.internal.pageSize.getHeight();
+		// Capture each top-level section separately so we can paginate on
+		// section boundaries instead of slicing panels in half.
+		const sections = Array.prototype.filter.call(
+			target.children,
+			function(el) { return !el.classList.contains('noc-loading'); }
+		);
 
-			// Fit the capture width to the page width, then paginate vertically.
-			const imgW = pageW;
-			const imgH = (canvas.height * imgW) / canvas.width;
-			const img = canvas.toDataURL('image/png');
+		const opts = {backgroundColor: '#0d1117', scale: 2, useCORS: true, logging: false};
 
-			let heightLeft = imgH;
-			let position = 0;
+		Promise.all(sections.map(function(el) { return h2c(el, opts); }))
+			.then(function(canvases) {
+				const pdf = new JsPDF({orientation: 'landscape', unit: 'pt', format: 'a4'});
+				const pageW = pdf.internal.pageSize.getWidth();
+				const pageH = pdf.internal.pageSize.getHeight();
+				const margin = 20;
+				const usableW = pageW - margin * 2;
+				const usableH = pageH - margin * 2;
 
-			pdf.addImage(img, 'PNG', 0, position, imgW, imgH);
-			heightLeft -= pageH;
+				let cursorY = margin;
+				let first = true;
 
-			while (heightLeft > 0) {
-				position -= pageH;
-				pdf.addPage();
-				pdf.addImage(img, 'PNG', 0, position, imgW, imgH);
-				heightLeft -= pageH;
-			}
+				canvases.forEach(function(canvas) {
+					let imgW = usableW;
+					let imgH = (canvas.height * imgW) / canvas.width;
 
-			const stamp = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', 'h');
-			const tenant = (cfg && cfg.tenant) ? cfg.tenant : 'all-tenants';
-			pdf.save('noc-executive_' + tenant + '_' + stamp + '.pdf');
-		}).catch(function(err) {
-			console.error('NOC dashboard: falha ao gerar PDF', err);
-			alert('Falha ao gerar o PDF: ' + err.message);
-			return;
-		}).finally(function() {
-			if (btn) {
-				btn.disabled = false;
-				btn.textContent = 'Exportar PDF';
-			}
-			// Resume auto-refresh if it was active.
-			if (hadTimer && cfg && cfg.refreshMs > 0) {
-				timer = window.setInterval(load, cfg.refreshMs);
-			}
-		});
+					// If a single section is taller than a page, scale it down to fit.
+					if (imgH > usableH) {
+						const ratio = usableH / imgH;
+						imgH = usableH;
+						imgW = usableW * ratio;
+					}
+
+					// New page if this section would overflow the current one.
+					if (!first && cursorY + imgH > pageH - margin) {
+						pdf.addPage();
+						cursorY = margin;
+					}
+
+					const x = margin + (usableW - imgW) / 2;
+					pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, cursorY, imgW, imgH);
+					cursorY += imgH + 12;
+					first = false;
+				});
+
+				const stamp = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', 'h');
+				const tenant = (cfg && cfg.tenant) ? cfg.tenant : 'all-tenants';
+				pdf.save('noc-executive_' + tenant + '_' + stamp + '.pdf');
+			})
+			.catch(function(err) {
+				console.error('NOC dashboard: falha ao gerar PDF', err);
+				alert('Falha ao gerar o PDF: ' + err.message);
+			})
+			.finally(function() {
+				if (btn) {
+					btn.disabled = false;
+					btn.textContent = 'Exportar PDF';
+				}
+				// Resume auto-refresh if it was active.
+				if (hadTimer && cfg && cfg.refreshMs > 0) {
+					timer = window.setInterval(load, cfg.refreshMs);
+				}
+			});
 	}
 
 	return {init: init};

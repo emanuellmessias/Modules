@@ -90,7 +90,7 @@ class ExecutiveData extends CController {
 				'range'       => ['from' => $time_from, 'till' => $time_till],
 				'generated'   => time(),
 				'cards'       => $this->buildCards($events),
-				'times'       => $this->buildResponseTimes($events),
+				'times'       => $this->buildResponseTimes($events, $alerts, $human_userids),
 				'severity'    => $this->buildSeverityMix($events),
 				'backlog'     => $this->buildBacklogByStatus($events),
 				'actions'     => $this->buildActionBreakdown($alerts, $events, $human_userids),
@@ -436,16 +436,27 @@ class ExecutiveData extends CController {
 	 *   - MTTR-respond: create -> first human action.
 	 *   - MTTR-resolve: create -> recovery.
 	 */
-	private function buildResponseTimes(array $events): array {
-		$mtta = [];
-		$mttr_resolve = [];
+	private function buildResponseTimes(array $events, array $alerts, array $human_userids): array {
+		// Earliest automation alert timestamp per event (the "dispatch"/detect event).
+		$first_automation = $this->firstAutomationClockByEvent($alerts);
+
+		$mttd = [];          // event -> first automation dispatched
+		$mtta = [];          // event -> first HUMAN acknowledge
+		$mttr_resolve = [];  // event -> recovery
 
 		foreach ($events as $e) {
 			$create = (int) $e['clock'];
+			$eventid = $e['eventid'];
 
-			$first_ack = $this->firstAckClock($e);
-			if ($first_ack !== null) {
-				$mtta[] = $first_ack - $create;
+			// MTTD: time until the automation forwarded the alert.
+			if (isset($first_automation[$eventid]) && $first_automation[$eventid] >= $create) {
+				$mttd[] = $first_automation[$eventid] - $create;
+			}
+
+			// MTTA: time until the first human analyst acknowledge.
+			$first_human = $this->firstHumanAckClock($e, $human_userids);
+			if ($first_human !== null) {
+				$mtta[] = $first_human - $create;
 			}
 
 			if ($e['r_clock'] > 0) {
@@ -454,8 +465,7 @@ class ExecutiveData extends CController {
 		}
 
 		return [
-			// MTTD is 0 here (event.clock is the detection instant in Zabbix).
-			'mttd'         => $this->stats([0]),
+			'mttd'         => $this->stats($mttd),
 			'mtta'         => $this->stats($mtta),
 			'mttr_respond' => $this->stats($mtta),
 			'mttr_resolve' => $this->stats($mttr_resolve)
@@ -463,14 +473,51 @@ class ExecutiveData extends CController {
 	}
 
 	/**
-	 * Clock of the first acknowledge on an event, or null.
+	 * Map eventid => earliest clock of an automation alert (WhatsApp / Email /
+	 * Cervello) for that event.
+	 *
+	 * @return array<int|string,int>
 	 */
-	private function firstAckClock(array $event): ?int {
+	private function firstAutomationClockByEvent(array $alerts): array {
+		$map = [];
+		foreach ($alerts as $a) {
+			$mt_name = isset($a['mediatypes'][0]['name']) ? $a['mediatypes'][0]['name'] : '';
+			if (!in_array($mt_name, self::AUTOMATION_MEDIATYPES, true)) {
+				continue;
+			}
+			$eventid = $a['eventid'] ?? 0;
+			$clock = (int) $a['clock'];
+			if ($eventid == 0) {
+				continue;
+			}
+			if (!isset($map[$eventid]) || $clock < $map[$eventid]) {
+				$map[$eventid] = $clock;
+			}
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Clock of the first acknowledge made by a HUMAN analyst (Monitor group)
+	 * on an event, or null if none.
+	 */
+	private function firstHumanAckClock(array $event, array $human_userids): ?int {
 		if (empty($event['acknowledges'])) {
 			return null;
 		}
 
-		$clocks = array_map(static fn ($a) => (int) $a['clock'], $event['acknowledges']);
+		$clocks = [];
+		foreach ($event['acknowledges'] as $ack) {
+			if (isset($human_userids[(int) $ack['userid']])) {
+				$clocks[] = (int) $ack['clock'];
+			}
+		}
+
+		if (!$clocks) {
+			return null;
+		}
+
 		sort($clocks);
 
 		return $clocks[0];
@@ -730,10 +777,19 @@ class ExecutiveData extends CController {
 			if (!in_array($mt_name, self::AUTOMATION_MEDIATYPES, true)) {
 				continue;
 			}
-			$name = $event_tenant[$a['eventid']] ?? _('Unknown');
+			// Only attribute the automation if we know its tenant from an event
+			// in range. Unknown-tenant automations are not shown as a row.
+			$eventid = $a['eventid'] ?? 0;
+			if ($eventid == 0 || !isset($event_tenant[$eventid])) {
+				continue;
+			}
+			$name = $event_tenant[$eventid];
 			$ensure($tenants, $name);
 			$tenants[$name]['automation']++;
 		}
+
+		// Drop any residual "unknown" tenant bucket.
+		unset($tenants[_('Unknown')]);
 
 		// Sort by event volume desc.
 		usort($tenants, static fn ($x, $y) => $y['events'] <=> $x['events']);
