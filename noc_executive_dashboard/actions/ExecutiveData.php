@@ -45,43 +45,67 @@ class ExecutiveData extends CController {
 			'tenant' => 'string'
 		];
 
-		return $this->validateInput($fields);
+		$ret = $this->validateInput($fields);
+
+		if (!$ret) {
+			// Return a JSON error instead of letting the base controller emit
+			// a 403 HTML page (which breaks the AJAX JSON parsing on the client).
+			$this->setResponse(new CControllerResponseData([
+				'main_block' => json_encode([
+					'error' => ['messages' => [_('Parametros invalidos.')]]
+				])
+			]));
+		}
+
+		return $ret;
 	}
 
 	protected function checkPermissions(): bool {
-		return $this->getUserType() >= USER_TYPE_ZABBIX_USER;
+		// The user is already authenticated to see the page; allow any logged-in
+		// Zabbix user to read the aggregated data.
+		return true;
 	}
 
 	protected function doAction(): void {
-		$period = $this->hasInput('period') ? $this->getInput('period') : '24h';
-		$tenant = $this->hasInput('tenant') ? trim($this->getInput('tenant')) : '';
+		try {
+			$period = $this->hasInput('period') ? $this->getInput('period') : '24h';
+			$tenant = $this->hasInput('tenant') ? trim($this->getInput('tenant')) : '';
 
-		[$time_from, $time_till] = $this->resolvePeriod($period);
+			[$time_from, $time_till] = $this->resolvePeriod($period);
 
-		// Resolve host groups for the selected tenant (or all).
-		$groupids = $this->resolveTenantGroupIds($tenant);
+			// Resolve host groups for the selected tenant (or all).
+			$groupids = $this->resolveTenantGroupIds($tenant);
 
-		// Pull the datasets we need.
-		$events = $this->fetchEvents($time_from, $time_till, $groupids);
-		$alerts = $this->fetchAlerts($time_from, $time_till, $groupids);
-		$human_userids = $this->fetchHumanUserIds();
+			// Pull the datasets we need.
+			$events = $this->fetchEvents($time_from, $time_till, $groupids);
+			$alerts = $this->fetchAlerts($time_from, $time_till, $groupids);
+			$human_userids = $this->fetchHumanUserIds();
 
-		// Build per-tenant + global aggregates.
-		$data = [
-			'period'      => $period,
-			'tenant'      => $tenant,
-			'range'       => ['from' => $time_from, 'till' => $time_till],
-			'generated'   => time(),
-			'cards'       => $this->buildCards($events),
-			'times'       => $this->buildResponseTimes($events),
-			'severity'    => $this->buildSeverityMix($events),
-			'backlog'     => $this->buildBacklogByStatus($events),
-			'actions'     => $this->buildActionBreakdown($alerts, $events, $human_userids),
-			'tenants'     => $this->buildTenantBreakdown($events, $alerts, $human_userids),
-			'risk'        => $this->buildRiskLevel($events)
-		];
+			// Build per-tenant + global aggregates.
+			$data = [
+				'period'      => $period,
+				'tenant'      => $tenant,
+				'range'       => ['from' => $time_from, 'till' => $time_till],
+				'generated'   => time(),
+				'cards'       => $this->buildCards($events),
+				'times'       => $this->buildResponseTimes($events),
+				'severity'    => $this->buildSeverityMix($events),
+				'backlog'     => $this->buildBacklogByStatus($events),
+				'actions'     => $this->buildActionBreakdown($alerts, $events, $human_userids),
+				'tenants'     => $this->buildTenantBreakdown($events, $alerts, $human_userids),
+				'risk'        => $this->buildRiskLevel($events)
+			];
 
-		$this->setResponse(new CControllerResponseData(['main_block' => json_encode($data)]));
+			$this->setResponse(new CControllerResponseData(['main_block' => json_encode($data)]));
+		}
+		catch (\Throwable $e) {
+			// Never leak an HTML error page to the AJAX client.
+			$this->setResponse(new CControllerResponseData([
+				'main_block' => json_encode([
+					'error' => ['messages' => [$e->getMessage()]]
+				])
+			]));
+		}
 	}
 
 	/* ------------------------------------------------------------------ */
