@@ -1,0 +1,401 @@
+/* NOC Executive Dashboard - dark theme (SOC-style). */
+
+.noc-exec {
+	--noc-bg: #0d1117;
+	--noc-panel: #131a24;
+	--noc-panel-2: #0f151d;
+	--noc-border: #1f2733;
+	--noc-text: #e8ecf3;
+	--noc-muted: #7a869a;
+	--noc-red: #e45959;
+	--noc-green: #4bd07b;
+	--noc-blue: #4f9df0;
+	--noc-yellow: #f5c451;
+	--noc-purple: #a877f0;
+	--noc-cyan: #2fd0c4;
+
+	background: var(--noc-bg);
+	color: var(--noc-text);
+	padding: 16px 20px 40px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	min-height: 100vh;
+}
+
+.noc-exec-inner {
+	max-width: 1440px;
+	margin: 0 auto;
+}
+
+/* Header ------------------------------------------------------------------ */
+
+.noc-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 16px;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+}
+
+.noc-title {
+	font-size: 22px;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+	margin: 0 0 4px;
+	color: var(--noc-text);
+}
+
+.noc-subtitle {
+	font-size: 12px;
+	color: var(--noc-muted);
+	margin: 0;
+}
+
+.noc-header-right {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.noc-period-group {
+	display: inline-flex;
+	background: var(--noc-panel);
+	border: 1px solid var(--noc-border);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.noc-period-btn {
+	background: transparent;
+	color: var(--noc-muted);
+	border: none;
+	padding: 7px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.noc-period-btn.is-active {
+	background: #1c2634;
+	color: var(--noc-text);
+}
+
+.noc-tenant-select {
+	background: var(--noc-panel);
+	border: 1px solid var(--noc-border);
+	color: var(--noc-text);
+	border-radius: 8px;
+	padding: 6px 10px;
+	font-size: 12px;
+}
+
+.noc-data-age {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 12px;
+	color: var(--noc-muted);
+	background: var(--noc-panel);
+	border: 1px solid var(--noc-border);
+	border-radius: 8px;
+	padding: 6px 10px;
+}
+
+.noc-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--noc-green);
+	display: inline-block;
+}
+
+.noc-refresh-btn {
+	background: var(--noc-panel);
+	border: 1px solid var(--noc-border);
+	color: var(--noc-text);
+	border-radius: 8px;
+	padding: 7px 12px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+/* KPI cards --------------------------------------------------------------- */
+
+.noc-cards {
+	display: grid;
+	grid-template-columns: repeat(6, 1fr);
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+.noc-card {
+	background: var(--noc-panel);
+	border: 1px solid var(--noc-border);
+	border-radius: 10px;
+	padding: 14px 16px;
+	position: relative;
+	overflow: hidden;
+}
+
+.noc-card::before {
+	content: "";
+	position: absolute;
+	left: 0; top: 0; bottom: 0;
+	width: 3px;
+	background: var(--noc-muted);
+}
+
+.noc-accent-red::before    { background: var(--noc-red); }
+.noc-accent-green::before  { background: var(--noc-green); }
+.noc-accent-blue::before   { background: var(--noc-blue); }
+.noc-accent-yellow::before { background: var(--noc-yellow); }
+.noc-accent-purple::before { background: var(--noc-purple); }
+.noc-accent-cyan::before   { background: var(--noc-cyan); }
+
+.noc-card-label {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--noc-muted);
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+}
+
+.noc-card-value {
+	font-size: 30px;
+	font-weight: 700;
+	margin: 6px 0 2px;
+}
+
+.noc-card-sub {
+	font-size: 11px;
+	color: var(--noc-muted);
+}
+
+/* Panels ------------------------------------------------------------------ */
+
+.noc-panel {
+	background: var(--noc-panel);
+	border: 1px solid var(--noc-border);
+	border-radius: 10px;
+	padding: 16px;
+}
+
+.noc-panel-head {
+	margin-bottom: 14px;
+}
+
+.noc-panel-title {
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.4px;
+	margin: 0;
+	text-transform: uppercase;
+}
+
+.noc-panel-sub {
+	font-size: 11px;
+	color: var(--noc-muted);
+	margin-top: 3px;
+}
+
+.noc-grid-2 {
+	display: grid;
+	grid-template-columns: 2fr 1fr;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+.noc-grid-3 {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+/* Response times ---------------------------------------------------------- */
+
+.noc-time-row {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 12px;
+}
+
+.noc-time-box {
+	background: var(--noc-panel-2);
+	border: 1px solid var(--noc-border);
+	border-radius: 8px;
+	padding: 12px;
+}
+
+.noc-time-label {
+	font-size: 10px;
+	color: var(--noc-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+}
+
+.noc-time-value {
+	font-size: 22px;
+	font-weight: 700;
+	margin: 6px 0 4px;
+}
+
+.noc-time-pct {
+	font-size: 10px;
+	color: var(--noc-muted);
+}
+
+/* Donut ------------------------------------------------------------------- */
+
+.noc-donut-wrap {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	flex-wrap: wrap;
+}
+
+.noc-donut-legend {
+	flex: 1;
+	min-width: 140px;
+}
+
+.noc-legend-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 3px 0;
+	font-size: 12px;
+}
+
+.noc-legend-dot {
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+}
+
+.noc-legend-name {
+	flex: 1;
+	color: var(--noc-muted);
+}
+
+.noc-legend-val {
+	font-weight: 600;
+}
+
+/* Backlog ----------------------------------------------------------------- */
+
+.noc-backlog-row,
+.noc-action-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 9px 10px;
+	border-radius: 6px;
+	font-size: 13px;
+}
+
+.noc-backlog-row:nth-child(odd),
+.noc-action-row:nth-child(odd) {
+	background: var(--noc-panel-2);
+}
+
+.noc-backlog-name,
+.noc-action-name {
+	color: var(--noc-muted);
+}
+
+.noc-backlog-val,
+.noc-action-val {
+	font-weight: 700;
+}
+
+.noc-action-total {
+	border-top: 1px solid var(--noc-border);
+	margin-top: 4px;
+}
+
+.noc-action-total .noc-action-val { color: var(--noc-purple); }
+.noc-action-human .noc-action-val { color: var(--noc-cyan); }
+
+/* Risk gauge -------------------------------------------------------------- */
+
+.noc-panel-risk {
+	position: relative;
+}
+
+.noc-gauge-wrap {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.noc-gauge-center {
+	position: absolute;
+	text-align: center;
+}
+
+.noc-gauge-value {
+	font-size: 34px;
+	font-weight: 700;
+}
+
+.noc-gauge-label {
+	font-size: 10px;
+	color: var(--noc-muted);
+	letter-spacing: 0.5px;
+}
+
+/* Tenant table ------------------------------------------------------------ */
+
+.noc-tenant-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.noc-tenant-table th {
+	text-align: left;
+	color: var(--noc-muted);
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--noc-border);
+}
+
+.noc-tenant-table td {
+	padding: 9px 10px;
+	border-bottom: 1px solid var(--noc-panel-2);
+}
+
+.noc-tenant-name { font-weight: 600; }
+.noc-tenant-auto { color: var(--noc-purple); }
+.noc-tenant-human { color: var(--noc-cyan); }
+
+/* Loading ----------------------------------------------------------------- */
+
+.noc-loading {
+	display: none;
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	background: var(--noc-panel);
+	border: 1px solid var(--noc-border);
+	border-radius: 8px;
+	padding: 10px 16px;
+	font-size: 12px;
+	color: var(--noc-muted);
+	align-items: center;
+	gap: 8px;
+	z-index: 100;
+}
+
+/* Responsive -------------------------------------------------------------- */
+
+@media (max-width: 1100px) {
+	.noc-cards { grid-template-columns: repeat(3, 1fr); }
+	.noc-grid-2, .noc-grid-3 { grid-template-columns: 1fr; }
+	.noc-time-row { grid-template-columns: repeat(2, 1fr); }
+}
