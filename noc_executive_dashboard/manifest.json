@@ -5,7 +5,7 @@
 	"version": "1.0.0",
 	"namespace": "NocExecutiveDashboard",
 	"author": "NOC Team",
-	"description": "Dashboard executivo para o NOC no estilo do SOC: indicadores de automacao (WhatsApp, Email, Cervello) vs acoes humanas (grupo Monitor), MTTD/MTTA/MTTR e visao multi-tenant por grupo de hosts.",
+	"description": "Dashboard executivo para o NOC no estilo do SOC: indicadores de automação (WhatsApp, Email, Cervello) vs ações humanas (grupo Monitor), MTTD/MTTA/MTTR e visão multi-tenant por grupo de hosts.",
 	"actions": {
 		"noc.executive.overview": {
 			"class": "ExecutiveOverview",

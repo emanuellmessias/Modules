@@ -54,26 +54,45 @@
 .noc-header-right {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 8px;
 	flex-wrap: wrap;
 }
 
-.noc-period-group {
+/* Uniform sizing so every control lines up on the same baseline/height. */
+.noc-header-right .noc-tenant-select,
+.noc-header-right .noc-period-group,
+.noc-header-right .noc-data-age,
+.noc-header-right .noc-refresh-btn,
+.noc-header-right .noc-export-btn {
+	height: 34px;
+	box-sizing: border-box;
 	display: inline-flex;
+	align-items: center;
+	border-radius: 8px;
+	font-size: 12px;
+	line-height: 1;
+	margin: 0;
+	vertical-align: middle;
+}
+
+.noc-period-group {
 	background: var(--noc-panel);
 	border: 1px solid var(--noc-border);
-	border-radius: 8px;
 	overflow: hidden;
+	padding: 0;
 }
 
 .noc-period-btn {
 	background: transparent;
 	color: var(--noc-muted);
 	border: none;
-	padding: 7px 12px;
+	height: 100%;
+	padding: 0 12px;
 	font-size: 12px;
 	font-weight: 600;
 	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
 }
 
 .noc-period-btn.is-active {
@@ -85,21 +104,17 @@
 	background: var(--noc-panel);
 	border: 1px solid var(--noc-border);
 	color: var(--noc-text);
-	border-radius: 8px;
-	padding: 6px 10px;
-	font-size: 12px;
+	padding: 0 10px;
+	min-width: 150px;
 }
 
 .noc-data-age {
-	display: inline-flex;
-	align-items: center;
 	gap: 6px;
-	font-size: 12px;
 	color: var(--noc-muted);
 	background: var(--noc-panel);
 	border: 1px solid var(--noc-border);
-	border-radius: 8px;
-	padding: 6px 10px;
+	padding: 0 10px;
+	white-space: nowrap;
 }
 
 .noc-dot {
@@ -108,16 +123,19 @@
 	border-radius: 50%;
 	background: var(--noc-green);
 	display: inline-block;
+	flex: 0 0 auto;
 }
 
 .noc-refresh-btn {
 	background: var(--noc-panel);
 	border: 1px solid var(--noc-border);
 	color: var(--noc-text);
-	border-radius: 8px;
-	padding: 7px 12px;
-	font-size: 12px;
+	padding: 0 12px;
 	cursor: pointer;
+}
+
+.noc-export-btn {
+	padding: 0 14px;
 }
 
 /* KPI cards --------------------------------------------------------------- */
@@ -414,9 +432,6 @@
 	background: var(--noc-blue);
 	border: 1px solid var(--noc-blue);
 	color: #fff;
-	border-radius: 8px;
-	padding: 7px 12px;
-	font-size: 12px;
 	font-weight: 600;
 	cursor: pointer;
 }

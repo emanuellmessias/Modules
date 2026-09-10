@@ -88,7 +88,7 @@ window.NocExecutiveDashboard = (function() {
 	}
 
 	function load() {
-		setLoading(true, 'Carregando dados da API...');
+		setLoading(true, 'Carregando dados da API…');
 
 		// Build the endpoint URL relative to the current Zabbix frontend path.
 		const base = (cfg.dataUrl && cfg.dataUrl.length) ? cfg.dataUrl : 'zabbix.php';
@@ -266,7 +266,7 @@ window.NocExecutiveDashboard = (function() {
 
 		if (!tenants || tenants.length === 0) {
 			const tr = document.createElement('tr');
-			tr.innerHTML = '<td colspan="5" class="noc-empty">' + escapeHtml('Sem dados no periodo') + '</td>';
+			tr.innerHTML = '<td colspan="5" class="noc-empty">' + escapeHtml('Sem dados no período') + '</td>';
 			tbody.appendChild(tr);
 			return;
 		}
@@ -294,7 +294,7 @@ window.NocExecutiveDashboard = (function() {
 		const rows = analysts ? (analysts.analysts || []) : [];
 
 		if (totalEl) {
-			totalEl.textContent = ' · ' + fmtNum(total) + ' acoes no total';
+			totalEl.textContent = ' · ' + fmtNum(total) + ' ações no total';
 		}
 
 		let tbody = table.querySelector('tbody');
@@ -306,7 +306,7 @@ window.NocExecutiveDashboard = (function() {
 
 		if (rows.length === 0) {
 			const tr = document.createElement('tr');
-			tr.innerHTML = '<td colspan="4" class="noc-empty">' + escapeHtml('Sem acoes humanas no periodo') + '</td>';
+			tr.innerHTML = '<td colspan="4" class="noc-empty">' + escapeHtml('Sem ações humanas no período') + '</td>';
 			tbody.appendChild(tr);
 			return;
 		}
@@ -471,15 +471,15 @@ window.NocExecutiveDashboard = (function() {
 		const jsPdfNs = window.jspdf || window.jsPDF ? (window.jspdf || window) : null;
 
 		if (typeof h2c !== 'function' || !jsPdfNs || !jsPdfNs.jsPDF) {
-			alert('Bibliotecas de exportacao (html2canvas / jsPDF) nao carregaram. '
-				+ 'Verifique a pasta assets/js/vendor/ do modulo ou o acesso ao CDN.');
+			alert('Bibliotecas de exportação (html2canvas / jsPDF) não carregaram. '
+				+ 'Verifique a pasta assets/js/vendor/ do módulo ou o acesso ao CDN.');
 			return;
 		}
 		const JsPDF = jsPdfNs.jsPDF;
 
 		if (btn) {
 			btn.disabled = true;
-			btn.textContent = 'Gerando PDF...';
+			btn.textContent = 'Gerando PDF…';
 		}
 
 		// Pause auto-refresh so the DOM does not change mid-capture.
@@ -525,6 +525,7 @@ window.NocExecutiveDashboard = (function() {
 		}).catch(function(err) {
 			console.error('NOC dashboard: falha ao gerar PDF', err);
 			alert('Falha ao gerar o PDF: ' + err.message);
+			return;
 		}).finally(function() {
 			if (btn) {
 				btn.disabled = false;

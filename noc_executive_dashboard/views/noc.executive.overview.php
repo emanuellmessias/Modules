@@ -70,7 +70,7 @@ $header = (new CDiv())
 		(new CDiv())
 			->addClass('noc-header-left')
 			->addItem((new CTag('h1', true, _('EXECUTIVE OVERVIEW')))->addClass('noc-title'))
-			->addItem((new CTag('p', true, _('Postura cross-tenant, performance de deteccao & resposta e saude de SLA.')))->addClass('noc-subtitle'))
+			->addItem((new CTag('p', true, _('Postura cross-tenant, performance de detecção & resposta e saúde de SLA.')))->addClass('noc-subtitle'))
 	)
 	->addItem(
 		(new CDiv())
@@ -99,7 +99,7 @@ $cards = (new CDiv())
 	->addItem(noc_card('kpi-new', _('NEW (RANGE)'), _('vs prior period'), 'blue'))
 	->addItem(noc_card('kpi-closed', _('CLOSED ALERTS'), _('resolved in range'), 'green'))
 	->addItem(noc_card('kpi-unassigned', _('UNASSIGNED'), _('awaiting triage'), 'yellow'))
-	->addItem(noc_card('kpi-automation', _('AUTOMATION'), _('acoes automaticas'), 'purple'))
+	->addItem(noc_card('kpi-automation', _('AUTOMATION'), _('ações automáticas'), 'purple'))
 	->addItem(noc_card('kpi-human', _('HUMAN ACTIONS'), _('grupo Monitor'), 'cyan'));
 
 // --- Detection & response times -------------------------------------------
@@ -110,7 +110,7 @@ $times = (new CDiv())
 		(new CDiv())
 			->addClass('noc-panel-head')
 			->addItem((new CTag('h2', true, _('DETECTION & RESPONSE TIMES')))->addClass('noc-panel-title'))
-			->addItem((new CDiv(_('Media com p50 / p90 — media correta cross-tenant')))->addClass('noc-panel-sub'))
+			->addItem((new CDiv(_('Média com p50 / p90 — média correta cross-tenant')))->addClass('noc-panel-sub'))
 	)
 	->addItem(
 		(new CDiv())
@@ -130,7 +130,7 @@ $severity = (new CDiv())
 		(new CDiv())
 			->addClass('noc-panel-head')
 			->addItem((new CTag('h2', true, _('SEVERITY MIX')))->addClass('noc-panel-title'))
-			->addItem((new CDiv(_('Novos alertas no periodo')))->addClass('noc-panel-sub'))
+			->addItem((new CDiv(_('Novos alertas no período')))->addClass('noc-panel-sub'))
 	)
 	->addItem(
 		(new CDiv())
@@ -146,7 +146,7 @@ $actions = (new CDiv())
 	->addItem(
 		(new CDiv())
 			->addClass('noc-panel-head')
-			->addItem((new CTag('h2', true, _('ACOES: AUTOMACAO x HUMANO')))->addClass('noc-panel-title'))
+			->addItem((new CTag('h2', true, _('AÇÕES: AUTOMAÇÃO x HUMANO')))->addClass('noc-panel-title'))
 			->addItem((new CDiv(_('WhatsApp / Email / Cervello vs grupo Monitor')))->addClass('noc-panel-sub'))
 	)
 	->addItem(
@@ -155,8 +155,8 @@ $actions = (new CDiv())
 			->addItem(noc_kv_row(_('WhatsApp'), 'act-whatsapp'))
 			->addItem(noc_kv_row(_('Email HTML NOC'), 'act-email'))
 			->addItem(noc_kv_row(_('Chamado Cervello'), 'act-cervello'))
-			->addItem(noc_kv_row(_('Total automacao'), 'act-automation-total', 'noc-kv-total'))
-			->addItem(noc_kv_row(_('Acoes humanas (Monitor)'), 'act-human-total', 'noc-kv-human'))
+			->addItem(noc_kv_row(_('Total automação'), 'act-automation-total', 'noc-kv-total'))
+			->addItem(noc_kv_row(_('Ações humanas (Monitor)'), 'act-human-total', 'noc-kv-human'))
 	);
 
 // --- Backlog by status -----------------------------------------------------
@@ -207,12 +207,12 @@ $tenants = (new CDiv())
 		(new CDiv())
 			->addClass('noc-panel-head')
 			->addItem((new CTag('h2', true, _('POR TENANT')))->addClass('noc-panel-title'))
-			->addItem((new CDiv(_('Eventos, resolucao, automacao e acoes humanas por cliente')))->addClass('noc-panel-sub'))
+			->addItem((new CDiv(_('Eventos, resolução, automação e ações humanas por cliente')))->addClass('noc-panel-sub'))
 	)
 	->addItem(
 		(new CTable())
 			->addClass('noc-tenant-table')
-			->setHeader([_('TENANT'), _('EVENTOS'), _('RESOLVIDOS'), _('AUTOMACAO'), _('HUMANO')])
+			->setHeader([_('TENANT'), _('EVENTOS'), _('RESOLVIDOS'), _('AUTOMAÇÃO'), _('HUMANO')])
 			->setId('noc-tenant-tbody')
 	);
 
@@ -225,13 +225,13 @@ $analysts = (new CDiv())
 		(new CDiv())
 			->addClass('noc-panel-head')
 			->addItem((new CTag('h2', true, _('ANALYST PERFORMANCE')))->addClass('noc-panel-title'))
-			->addItem((new CDiv(_('Acoes humanas tratadas por analista do grupo Monitor')))->addClass('noc-panel-sub')
+			->addItem((new CDiv(_('Ações humanas tratadas por analista do grupo Monitor')))->addClass('noc-panel-sub')
 				->addItem((new CSpan(''))->setId('noc-analyst-total')->addClass('noc-analyst-total')))
 	)
 	->addItem(
 		(new CTable())
 			->addClass('noc-analyst-table')
-			->setHeader([_('ANALISTA'), _('EVENTOS'), _('ACOES'), _('% DO TOTAL')])
+			->setHeader([_('ANALISTA'), _('EVENTOS'), _('AÇÕES'), _('% DO TOTAL')])
 			->setId('noc-analyst-tbody')
 	);
 

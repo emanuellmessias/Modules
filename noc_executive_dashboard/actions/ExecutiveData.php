@@ -55,7 +55,7 @@ class ExecutiveData extends CController {
 			// a 403 HTML page (which breaks the AJAX JSON parsing on the client).
 			$this->setResponse(new CControllerResponseData([
 				'main_block' => json_encode([
-					'error' => ['messages' => [_('Parametros invalidos.')]]
+					'error' => ['messages' => [_('Parâmetros inválidos.')]]
 				])
 			]));
 		}
