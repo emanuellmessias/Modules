@@ -93,6 +93,7 @@ class ExecutiveData extends CController {
 				'backlog'     => $this->buildBacklogByStatus($events),
 				'actions'     => $this->buildActionBreakdown($alerts, $events, $human_userids),
 				'tenants'     => $this->buildTenantBreakdown($events, $alerts, $human_userids),
+				'all_tenants' => $this->fetchAllTenants(),
 				'risk'        => $this->buildRiskLevel($events)
 			];
 
@@ -173,6 +174,35 @@ class ExecutiveData extends CController {
 		}
 
 		return $ids ?: ['0'];
+	}
+
+	/**
+	 * Full, de-duplicated list of tenant (client) names derived from ALL host
+	 * groups — used to populate the tenant filter, independent of the period.
+	 *
+	 * @return array<int,string> sorted client names
+	 */
+	private function fetchAllTenants(): array {
+		$groups = API::HostGroup()->get([
+			'output' => ['name']
+		]);
+
+		if (!is_array($groups)) {
+			return [];
+		}
+
+		$tenants = [];
+		foreach ($groups as $group) {
+			$name = $this->tenantFromGroupName($group['name']);
+			if ($name !== '') {
+				$tenants[$name] = true;
+			}
+		}
+
+		$names = array_keys($tenants);
+		natcasesort($names);
+
+		return array_values($names);
 	}
 
 	/* ------------------------------------------------------------------ */

@@ -62,25 +62,24 @@ window.NocExecutiveDashboard = (function() {
 		}
 	}
 
-	function populateTenants(tenants) {
+	function populateTenants(allTenants) {
 		const select = document.getElementById('noc-tenant-select');
-		if (!select || !tenants) {
+		if (!select || !allTenants) {
 			return;
 		}
-		// Only build the option list once.
+		// Only build the option list once (the full client list is stable).
 		if (select.dataset.populated === '1') {
 			return;
 		}
-		tenants.forEach(function(t) {
+		allTenants.forEach(function(name) {
 			const opt = document.createElement('option');
-			opt.value = t.tenant;
-			opt.textContent = t.tenant;
+			opt.value = name;
+			opt.textContent = name;
 			select.appendChild(opt);
 		});
 		select.dataset.populated = '1';
-		if (cfg.tenant) {
-			select.value = cfg.tenant;
-		}
+		// Keep "All Tenants" selected unless a tenant is explicitly chosen.
+		select.value = cfg.tenant || '';
 	}
 
 	function load() {
@@ -156,7 +155,7 @@ window.NocExecutiveDashboard = (function() {
 		renderActions(data.actions);
 		renderRisk(data.risk);
 		renderTenants(data.tenants);
-		populateTenants(data.tenants);
+		populateTenants(data.all_tenants);
 		renderDataAge(data.generated);
 	}
 
