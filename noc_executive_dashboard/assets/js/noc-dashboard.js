@@ -84,35 +84,63 @@ window.NocExecutiveDashboard = (function() {
 	}
 
 	function load() {
-		setLoading(true);
+		setLoading(true, 'Carregando dados da API...');
 
-		const url = new URL(cfg.dataUrl, window.location.origin);
+		// Build the endpoint URL relative to the current Zabbix frontend path.
+		const base = (cfg.dataUrl && cfg.dataUrl.length) ? cfg.dataUrl : 'zabbix.php';
+		const url = new URL(base, window.location.href);
 		url.searchParams.set('action', cfg.action);
 		url.searchParams.set('period', cfg.period);
 		url.searchParams.set('tenant', cfg.tenant || '');
 
 		fetch(url.toString(), {
 			method: 'GET',
+			credentials: 'same-origin',
 			headers: {'X-Requested-With': 'XMLHttpRequest'}
 		})
-			.then(function(resp) { return resp.json(); })
-			.then(function(payload) {
+			.then(function(resp) {
+				if (!resp.ok) {
+					throw new Error('HTTP ' + resp.status + ' ' + resp.statusText);
+				}
+				return resp.text();
+			})
+			.then(function(text) {
+				let payload;
+				try {
+					payload = JSON.parse(text);
+				}
+				catch (e) {
+					throw new Error('Resposta nao-JSON (' + text.slice(0, 120) + ')');
+				}
+
+				// Zabbix error envelope.
+				if (payload && payload.error) {
+					const msg = payload.error.messages
+						? payload.error.messages.join('; ')
+						: (payload.error.title || 'erro');
+					throw new Error('API: ' + msg);
+				}
+
 				const data = (payload && payload.main_block)
 					? JSON.parse(payload.main_block)
 					: payload;
+
 				render(data);
 				setLoading(false);
 			})
 			.catch(function(err) {
 				console.error('NOC dashboard load failed', err);
-				setLoading(false);
+				setLoading(true, 'Falha ao carregar: ' + err.message);
 			});
 	}
 
-	function setLoading(on) {
+	function setLoading(on, message) {
 		const el = document.getElementById('noc-loading');
 		if (el) {
 			el.style.display = on ? 'flex' : 'none';
+			if (on && message) {
+				el.textContent = message;
+			}
 		}
 	}
 
