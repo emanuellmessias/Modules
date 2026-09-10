@@ -156,7 +156,7 @@ $actions = (new CDiv())
 			->addItem(noc_kv_row(_('Email NOC'), 'act-email'))
 			->addItem(noc_kv_row(_('Chamado Cervello'), 'act-cervello'))
 			->addItem(noc_kv_row(_('Total Automação'), 'act-automation-total', 'noc-kv-total'))
-			->addItem(noc_kv_row(_('Automação NOC'), 'act-human-total', 'noc-kv-human'))
+			->addItem(noc_kv_row(_('Ações humanas (Monitor)'), 'act-human-total', 'noc-kv-human'))
 	);
 
 // --- Backlog by status -----------------------------------------------------
