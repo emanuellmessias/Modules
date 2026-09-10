@@ -5,6 +5,7 @@ namespace Modules\NocExecutiveDashboard;
 use Zabbix\Core\CModule;
 use APP;
 use CMenuItem;
+use CWebUser;
 
 /**
  * NOC Executive Dashboard module.
@@ -17,6 +18,11 @@ class Module extends CModule {
 	 * Initialize module: inject the NOC menu entry into the main frontend menu.
 	 */
 	public function init(): void {
+		// Restricted to Super Admin only.
+		if (CWebUser::getType() != USER_TYPE_SUPER_ADMIN) {
+			return;
+		}
+
 		// Add a dedicated "NOC" section to the main menu, after "Monitoring".
 		APP::Component()->get('menu.main')
 			->findOrAdd(_('NOC'))

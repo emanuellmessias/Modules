@@ -370,6 +370,62 @@
 .noc-tenant-auto { color: var(--noc-purple); }
 .noc-tenant-human { color: var(--noc-cyan); }
 
+/* Analyst performance ----------------------------------------------------- */
+
+.noc-analyst-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.noc-analyst-table th {
+	text-align: left;
+	color: var(--noc-muted);
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--noc-border);
+}
+
+.noc-analyst-table td {
+	padding: 9px 10px;
+	border-bottom: 1px solid var(--noc-panel-2);
+}
+
+.noc-analyst-name { font-weight: 600; }
+.noc-analyst-actions { color: var(--noc-cyan); font-weight: 700; }
+.noc-analyst-pct { color: var(--noc-muted); }
+
+.noc-analyst-total {
+	color: var(--noc-cyan);
+	font-weight: 600;
+}
+
+.noc-empty {
+	color: var(--noc-muted);
+	text-align: center;
+	padding: 16px !important;
+}
+
+/* Export button ----------------------------------------------------------- */
+
+.noc-export-btn {
+	background: var(--noc-blue);
+	border: 1px solid var(--noc-blue);
+	color: #fff;
+	border-radius: 8px;
+	padding: 7px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.noc-export-btn:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
 /* Loading ----------------------------------------------------------------- */
 
 .noc-loading {

@@ -53,6 +53,11 @@ window.NocExecutiveDashboard = (function() {
 			refresh.addEventListener('click', load);
 		}
 
+		const exportBtn = document.getElementById('noc-export-pdf');
+		if (exportBtn) {
+			exportBtn.addEventListener('click', exportPdf);
+		}
+
 		const tenant = document.getElementById('noc-tenant-select');
 		if (tenant) {
 			tenant.addEventListener('change', function() {
@@ -155,6 +160,7 @@ window.NocExecutiveDashboard = (function() {
 		renderActions(data.actions);
 		renderRisk(data.risk);
 		renderTenants(data.tenants);
+		renderAnalysts(data.analysts);
 		populateTenants(data.all_tenants);
 		renderDataAge(data.generated);
 	}
@@ -273,6 +279,45 @@ window.NocExecutiveDashboard = (function() {
 				'<td>' + fmtNum(t.resolved) + '</td>' +
 				'<td class="noc-tenant-auto">' + fmtNum(t.automation) + '</td>' +
 				'<td class="noc-tenant-human">' + fmtNum(t.human) + '</td>';
+			tbody.appendChild(tr);
+		});
+	}
+
+	function renderAnalysts(analysts) {
+		const table = document.getElementById('noc-analyst-tbody');
+		const totalEl = document.getElementById('noc-analyst-total');
+		if (!table) {
+			return;
+		}
+
+		const total = analysts ? (analysts.total || 0) : 0;
+		const rows = analysts ? (analysts.analysts || []) : [];
+
+		if (totalEl) {
+			totalEl.textContent = ' · ' + fmtNum(total) + ' acoes no total';
+		}
+
+		let tbody = table.querySelector('tbody');
+		if (!tbody) {
+			tbody = document.createElement('tbody');
+			table.appendChild(tbody);
+		}
+		tbody.innerHTML = '';
+
+		if (rows.length === 0) {
+			const tr = document.createElement('tr');
+			tr.innerHTML = '<td colspan="4" class="noc-empty">' + escapeHtml('Sem acoes humanas no periodo') + '</td>';
+			tbody.appendChild(tr);
+			return;
+		}
+
+		rows.forEach(function(a) {
+			const tr = document.createElement('tr');
+			tr.innerHTML =
+				'<td class="noc-analyst-name">' + escapeHtml(a.name) + '</td>' +
+				'<td>' + fmtNum(a.events) + '</td>' +
+				'<td class="noc-analyst-actions">' + fmtNum(a.actions) + '</td>' +
+				'<td class="noc-analyst-pct">' + (a.percent != null ? a.percent : 0) + '%</td>';
 			tbody.appendChild(tr);
 		});
 	}
@@ -405,6 +450,91 @@ window.NocExecutiveDashboard = (function() {
 		const div = document.createElement('div');
 		div.textContent = str == null ? '' : String(str);
 		return div.innerHTML;
+	}
+
+	// --- PDF export --------------------------------------------------------
+
+	/**
+	 * Captures the whole dashboard with html2canvas and produces a real,
+	 * multi-page PDF via jsPDF (A4 landscape). Downloads automatically.
+	 * Requires window.html2canvas and window.jspdf to be loaded.
+	 */
+	function exportPdf() {
+		const btn = document.getElementById('noc-export-pdf');
+		const target = document.querySelector('.noc-exec-inner');
+
+		if (!target) {
+			return;
+		}
+
+		const h2c = window.html2canvas;
+		const jsPdfNs = window.jspdf || window.jsPDF ? (window.jspdf || window) : null;
+
+		if (typeof h2c !== 'function' || !jsPdfNs || !jsPdfNs.jsPDF) {
+			alert('Bibliotecas de exportacao (html2canvas / jsPDF) nao carregaram. '
+				+ 'Verifique a pasta assets/js/vendor/ do modulo ou o acesso ao CDN.');
+			return;
+		}
+		const JsPDF = jsPdfNs.jsPDF;
+
+		if (btn) {
+			btn.disabled = true;
+			btn.textContent = 'Gerando PDF...';
+		}
+
+		// Pause auto-refresh so the DOM does not change mid-capture.
+		const hadTimer = timer;
+		if (timer) {
+			window.clearInterval(timer);
+			timer = null;
+		}
+
+		h2c(target, {
+			backgroundColor: '#0d1117',
+			scale: 2,
+			useCORS: true,
+			logging: false,
+			windowWidth: target.scrollWidth,
+			windowHeight: target.scrollHeight
+		}).then(function(canvas) {
+			const pdf = new JsPDF({orientation: 'landscape', unit: 'pt', format: 'a4'});
+			const pageW = pdf.internal.pageSize.getWidth();
+			const pageH = pdf.internal.pageSize.getHeight();
+
+			// Fit the capture width to the page width, then paginate vertically.
+			const imgW = pageW;
+			const imgH = (canvas.height * imgW) / canvas.width;
+			const img = canvas.toDataURL('image/png');
+
+			let heightLeft = imgH;
+			let position = 0;
+
+			pdf.addImage(img, 'PNG', 0, position, imgW, imgH);
+			heightLeft -= pageH;
+
+			while (heightLeft > 0) {
+				position -= pageH;
+				pdf.addPage();
+				pdf.addImage(img, 'PNG', 0, position, imgW, imgH);
+				heightLeft -= pageH;
+			}
+
+			const stamp = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', 'h');
+			const tenant = (cfg && cfg.tenant) ? cfg.tenant : 'all-tenants';
+			pdf.save('noc-executive_' + tenant + '_' + stamp + '.pdf');
+		}).catch(function(err) {
+			console.error('NOC dashboard: falha ao gerar PDF', err);
+			alert('Falha ao gerar o PDF: ' + err.message);
+		}).finally(function() {
+			if (btn) {
+				btn.disabled = false;
+				btn.textContent = 'Exportar PDF';
+			}
+			// Resume auto-refresh if it was active.
+			if (hadTimer && cfg && cfg.refreshMs > 0) {
+				timer = window.setInterval(load, cfg.refreshMs);
+			}
+		});
 	}
 
 	return {init: init};

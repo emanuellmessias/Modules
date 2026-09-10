@@ -118,3 +118,31 @@ texto antes do `|`:
   incluído nesta versão; é o próximo passo natural (usa os mesmos dados de
   acknowledges por usuário do grupo Monitor).
 ```
+
+
+---
+
+## Novidades (v1.1)
+
+### Restricao de acesso: apenas Super Admin
+A pagina, o item de menu (**NOC → Dashboard Executivo**) e o endpoint de dados
+sao visiveis somente para usuarios do tipo **Super Admin**. Usuarios comuns nem
+veem o menu.
+
+### Painel "Analyst Performance"
+Tabela com os analistas do grupo `Monitor` que trataram eventos no periodo:
+- **Eventos**: quantos eventos distintos o analista tocou (acknowledge/mensagem).
+- **Acoes**: total de acoes humanas do analista.
+- **% do total**: participacao do analista no total de acoes humanas.
+
+### Exportacao em PDF (real, com graficos)
+Botao **Exportar PDF** no cabecalho. Captura o dashboard inteiro — incluindo os
+graficos donut/gauge (`<canvas>`) — via `html2canvas` e gera um **PDF real** (A4
+paisagem, paginado) que baixa automaticamente. Nome do arquivo:
+`noc-executive_<tenant>_<data>.pdf`.
+
+**Bibliotecas necessarias** (`html2canvas`, `jsPDF`): o modulo carrega primeiro os
+arquivos locais em `assets/js/vendor/` e, se nao existirem, tenta o CDN jsDelivr
+(so o navegador precisa de internet nesse caso — o servidor Zabbix nao). Para
+funcionar **100% offline**, baixe os 2 arquivos conforme instrucoes em
+`assets/js/vendor/README.md`.

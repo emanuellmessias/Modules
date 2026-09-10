@@ -36,9 +36,8 @@ class ExecutiveOverview extends CController {
 	}
 
 	protected function checkPermissions(): bool {
-		// Any authenticated user with UI access may open the page.
-		return $this->checkAccess(CRoleHelper::UI_MONITORING_DASHBOARD)
-			|| $this->getUserType() >= USER_TYPE_ZABBIX_USER;
+		// Restricted to Super Admin only.
+		return $this->getUserType() == USER_TYPE_SUPER_ADMIN;
 	}
 
 	protected function doAction(): void {

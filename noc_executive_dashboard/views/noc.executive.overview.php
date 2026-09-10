@@ -88,6 +88,7 @@ $header = (new CDiv())
 					->addItem((new CSpan(_('Data —')))->setId('noc-data-age'))
 			)
 			->addItem((new CSimpleButton(_('Refresh')))->addClass('noc-refresh-btn')->setId('noc-refresh'))
+			->addItem((new CSimpleButton(_('Exportar PDF')))->addClass('noc-export-btn')->setId('noc-export-pdf'))
 	);
 
 // --- KPI cards -------------------------------------------------------------
@@ -215,6 +216,25 @@ $tenants = (new CDiv())
 			->setId('noc-tenant-tbody')
 	);
 
+// --- Analyst performance (Monitor group) ----------------------------------
+
+$analysts = (new CDiv())
+	->addClass('noc-panel')
+	->addClass('noc-panel-analysts')
+	->addItem(
+		(new CDiv())
+			->addClass('noc-panel-head')
+			->addItem((new CTag('h2', true, _('ANALYST PERFORMANCE')))->addClass('noc-panel-title'))
+			->addItem((new CDiv(_('Acoes humanas tratadas por analista do grupo Monitor')))->addClass('noc-panel-sub')
+				->addItem((new CSpan(''))->setId('noc-analyst-total')->addClass('noc-analyst-total')))
+	)
+	->addItem(
+		(new CTable())
+			->addClass('noc-analyst-table')
+			->setHeader([_('ANALISTA'), _('EVENTOS'), _('ACOES'), _('% DO TOTAL')])
+			->setId('noc-analyst-tbody')
+	);
+
 // --- Assemble page --------------------------------------------------------
 
 $body = (new CDiv())
@@ -234,6 +254,7 @@ $body = (new CDiv())
 				->addItem($risk)
 				->addItem($actions))
 			->addItem($tenants)
+			->addItem($analysts)
 			->addItem((new CDiv())->addClass('noc-loading')->setId('noc-loading')
 				->addItem(new CSpan(_('Carregando dados da API...'))))
 	);

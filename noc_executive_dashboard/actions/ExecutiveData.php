@@ -35,6 +35,9 @@ class ExecutiveData extends CController {
 	private const HUMAN_USER_GROUP      = 'Monitor';
 	private const TENANT_SEPARATOR      = '|';
 
+	/** @var array<int,string> map userid => display name (filled by fetchHumanUserIds) */
+	private array $human_user_names = [];
+
 	protected function init(): void {
 		$this->disableCsrfValidation();
 	}
@@ -61,9 +64,8 @@ class ExecutiveData extends CController {
 	}
 
 	protected function checkPermissions(): bool {
-		// The user is already authenticated to see the page; allow any logged-in
-		// Zabbix user to read the aggregated data.
-		return true;
+		// Restricted to Super Admin only (matches the page/menu restriction).
+		return $this->getUserType() == USER_TYPE_SUPER_ADMIN;
 	}
 
 	protected function doAction(): void {
@@ -92,6 +94,7 @@ class ExecutiveData extends CController {
 				'severity'    => $this->buildSeverityMix($events),
 				'backlog'     => $this->buildBacklogByStatus($events),
 				'actions'     => $this->buildActionBreakdown($alerts, $events, $human_userids),
+				'analysts'    => $this->buildAnalystBreakdown($events, $human_userids),
 				'tenants'     => $this->buildTenantBreakdown($events, $alerts, $human_userids),
 				'all_tenants' => $this->fetchAllTenants(),
 				'risk'        => $this->buildRiskLevel($events)
@@ -357,7 +360,7 @@ class ExecutiveData extends CController {
 		$groups = API::UserGroup()->get([
 			'output'     => ['usrgrpid', 'name'],
 			'filter'     => ['name' => self::HUMAN_USER_GROUP],
-			'selectUsers' => ['userid']
+			'selectUsers' => ['userid', 'username', 'name', 'surname']
 		]);
 
 		$map = [];
@@ -368,11 +371,21 @@ class ExecutiveData extends CController {
 				}
 				foreach ($group['users'] as $user) {
 					$map[(int) $user['userid']] = true;
+					$this->human_user_names[(int) $user['userid']] = $this->displayName($user);
 				}
 			}
 		}
 
 		return $map;
+	}
+
+	/**
+	 * Build a friendly display name for a user: "Name Surname" or username.
+	 */
+	private function displayName(array $user): string {
+		$full = trim(($user['name'] ?? '').' '.($user['surname'] ?? ''));
+
+		return $full !== '' ? $full : ($user['username'] ?? _('Unknown'));
 	}
 
 	/* ------------------------------------------------------------------ */
@@ -622,6 +635,55 @@ class ExecutiveData extends CController {
 			'human' => [
 				'total' => $human_actions
 			]
+		];
+	}
+
+	/**
+	 * Per-analyst breakdown for the Monitor group.
+	 *
+	 * Counts how many human actions (acknowledges/messages) each analyst
+	 * performed in the period, with the percentage of the human total.
+	 * Only users in the Monitor group are counted; unique events per analyst
+	 * are also tracked so we can show "events handled".
+	 *
+	 * @return array{total:int, analysts:array<int,array{name:string,actions:int,events:int,percent:float}>}
+	 */
+	private function buildAnalystBreakdown(array $events, array $human_userids): array {
+		$actions_by_user = [];   // userid => action count
+		$events_by_user = [];    // userid => set of eventids handled
+
+		foreach ($events as $e) {
+			if (empty($e['acknowledges'])) {
+				continue;
+			}
+			foreach ($e['acknowledges'] as $ack) {
+				$uid = (int) $ack['userid'];
+				if (!isset($human_userids[$uid])) {
+					continue;
+				}
+				$actions_by_user[$uid] = ($actions_by_user[$uid] ?? 0) + 1;
+				$events_by_user[$uid][$e['eventid']] = true;
+			}
+		}
+
+		$total_actions = array_sum($actions_by_user);
+
+		$analysts = [];
+		foreach ($actions_by_user as $uid => $count) {
+			$analysts[] = [
+				'name'    => $this->human_user_names[$uid] ?? ('#'.$uid),
+				'actions' => $count,
+				'events'  => isset($events_by_user[$uid]) ? count($events_by_user[$uid]) : 0,
+				'percent' => $total_actions > 0 ? round(($count / $total_actions) * 100, 1) : 0.0
+			];
+		}
+
+		// Sort by actions desc.
+		usort($analysts, static fn ($x, $y) => $y['actions'] <=> $x['actions']);
+
+		return [
+			'total'    => $total_actions,
+			'analysts' => $analysts
 		];
 	}
 
