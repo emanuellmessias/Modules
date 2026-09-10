@@ -53,12 +53,33 @@ window.NocExecutiveDashboard = (function() {
 			refresh.addEventListener('click', load);
 		}
 
-		const tenant = document.querySelector('.noc-tenant-select');
+		const tenant = document.getElementById('noc-tenant-select');
 		if (tenant) {
 			tenant.addEventListener('change', function() {
 				cfg.tenant = tenant.value;
 				load();
 			});
+		}
+	}
+
+	function populateTenants(tenants) {
+		const select = document.getElementById('noc-tenant-select');
+		if (!select || !tenants) {
+			return;
+		}
+		// Only build the option list once.
+		if (select.dataset.populated === '1') {
+			return;
+		}
+		tenants.forEach(function(t) {
+			const opt = document.createElement('option');
+			opt.value = t.tenant;
+			opt.textContent = t.tenant;
+			select.appendChild(opt);
+		});
+		select.dataset.populated = '1';
+		if (cfg.tenant) {
+			select.value = cfg.tenant;
 		}
 	}
 
@@ -107,6 +128,7 @@ window.NocExecutiveDashboard = (function() {
 		renderActions(data.actions);
 		renderRisk(data.risk);
 		renderTenants(data.tenants);
+		populateTenants(data.tenants);
 		renderDataAge(data.generated);
 	}
 
@@ -202,15 +224,21 @@ window.NocExecutiveDashboard = (function() {
 			return;
 		}
 
-		// Remove existing body rows, keep the header.
-		const rows = table.querySelectorAll('tr');
-		rows.forEach(function(r, i) {
-			if (i > 0) {
-				r.remove();
-			}
-		});
+		let tbody = table.querySelector('tbody');
+		if (!tbody) {
+			tbody = document.createElement('tbody');
+			table.appendChild(tbody);
+		}
+		tbody.innerHTML = '';
 
-		(tenants || []).forEach(function(t) {
+		if (!tenants || tenants.length === 0) {
+			const tr = document.createElement('tr');
+			tr.innerHTML = '<td colspan="5" class="noc-empty">' + escapeHtml('Sem dados no periodo') + '</td>';
+			tbody.appendChild(tr);
+			return;
+		}
+
+		tenants.forEach(function(t) {
 			const tr = document.createElement('tr');
 			tr.innerHTML =
 				'<td class="noc-tenant-name">' + escapeHtml(t.tenant) + '</td>' +
@@ -218,7 +246,7 @@ window.NocExecutiveDashboard = (function() {
 				'<td>' + fmtNum(t.resolved) + '</td>' +
 				'<td class="noc-tenant-auto">' + fmtNum(t.automation) + '</td>' +
 				'<td class="noc-tenant-human">' + fmtNum(t.human) + '</td>';
-			table.appendChild(tr);
+			tbody.appendChild(tr);
 		});
 	}
 

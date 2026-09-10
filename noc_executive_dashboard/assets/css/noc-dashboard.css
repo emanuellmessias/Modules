@@ -285,8 +285,7 @@
 
 /* Backlog ----------------------------------------------------------------- */
 
-.noc-backlog-row,
-.noc-action-row {
+.noc-kv-row {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -295,28 +294,25 @@
 	font-size: 13px;
 }
 
-.noc-backlog-row:nth-child(odd),
-.noc-action-row:nth-child(odd) {
+.noc-kv-row:nth-child(odd) {
 	background: var(--noc-panel-2);
 }
 
-.noc-backlog-name,
-.noc-action-name {
+.noc-kv-name {
 	color: var(--noc-muted);
 }
 
-.noc-backlog-val,
-.noc-action-val {
+.noc-kv-val {
 	font-weight: 700;
 }
 
-.noc-action-total {
+.noc-kv-total {
 	border-top: 1px solid var(--noc-border);
 	margin-top: 4px;
 }
 
-.noc-action-total .noc-action-val { color: var(--noc-purple); }
-.noc-action-human .noc-action-val { color: var(--noc-cyan); }
+.noc-kv-total .noc-kv-val { color: var(--noc-purple); }
+.noc-kv-human .noc-kv-val { color: var(--noc-cyan); }
 
 /* Risk gauge -------------------------------------------------------------- */
 
