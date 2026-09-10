@@ -161,6 +161,10 @@ class ExecutiveData extends CController {
 			'preservekeys' => true
 		]);
 
+		if (!is_array($groups)) {
+			return null;
+		}
+
 		$ids = [];
 		foreach ($groups as $group) {
 			if ($this->tenantFromGroupName($group['name']) === $tenant) {
@@ -180,11 +184,12 @@ class ExecutiveData extends CController {
 	 * host groups and recovery info so we can compute all timings.
 	 */
 	private function fetchEvents(int $from, int $till, ?array $groupids): array {
+		// NOTE: event.get does NOT support selectHostGroups. We fetch the host
+		// ids here and resolve their groups with a separate host.get call.
 		$params = [
 			'output'          => ['eventid', 'clock', 'ns', 'name', 'severity', 'r_eventid', 'acknowledged'],
 			'selectAcknowledges' => ['clock', 'action', 'userid', 'message'],
 			'selectHosts'     => ['hostid'],
-			'selectHostGroups' => ['groupid', 'name'],
 			'source'          => EVENT_SOURCE_TRIGGERS,
 			'object'          => EVENT_OBJECT_TRIGGER,
 			'value'           => TRIGGER_VALUE_TRUE,
@@ -199,6 +204,12 @@ class ExecutiveData extends CController {
 		}
 
 		$events = API::Event()->get($params);
+		if (!is_array($events)) {
+			return [];
+		}
+
+		// Resolve host groups for every host referenced by the events.
+		$host_groups = $this->fetchHostGroupsMap($events);
 
 		// Enrich with recovery timestamps (resolution time) in one extra call.
 		$r_eventids = [];
@@ -215,8 +226,10 @@ class ExecutiveData extends CController {
 				'eventids'  => $r_eventids,
 				'preservekeys' => true
 			]);
-			foreach ($rows as $row) {
-				$recovery[$row['eventid']] = (int) $row['clock'];
+			if (is_array($rows)) {
+				foreach ($rows as $row) {
+					$recovery[$row['eventid']] = (int) $row['clock'];
+				}
 			}
 		}
 
@@ -224,10 +237,64 @@ class ExecutiveData extends CController {
 			$e['r_clock'] = ($e['r_eventid'] != 0 && isset($recovery[$e['r_eventid']]))
 				? $recovery[$e['r_eventid']]
 				: 0;
+
+			// Attach the host groups (name list) derived from the event hosts.
+			$groups = [];
+			if (!empty($e['hosts'])) {
+				foreach ($e['hosts'] as $host) {
+					$hid = $host['hostid'];
+					if (isset($host_groups[$hid])) {
+						foreach ($host_groups[$hid] as $g) {
+							$groups[$g['groupid']] = $g;
+						}
+					}
+				}
+			}
+			$e['hostgroups'] = array_values($groups);
 		}
 		unset($e);
 
 		return $events;
+	}
+
+	/**
+	 * Map hostid => list of {groupid, name} for all hosts referenced by events.
+	 *
+	 * @return array<int|string, array<int, array{groupid:string,name:string}>>
+	 */
+	private function fetchHostGroupsMap(array $events): array {
+		$hostids = [];
+		foreach ($events as $e) {
+			if (!empty($e['hosts'])) {
+				foreach ($e['hosts'] as $host) {
+					$hostids[$host['hostid']] = true;
+				}
+			}
+		}
+
+		if (!$hostids) {
+			return [];
+		}
+
+		$hosts = API::Host()->get([
+			'output'    => ['hostid'],
+			'hostids'   => array_keys($hostids),
+			'selectHostGroups' => ['groupid', 'name'],
+			'preservekeys' => true
+		]);
+
+		if (!is_array($hosts)) {
+			return [];
+		}
+
+		$map = [];
+		foreach ($hosts as $hostid => $host) {
+			// Zabbix 7.x returns groups under 'hostgroups'; older under 'groups'.
+			$groups = $host['hostgroups'] ?? ($host['groups'] ?? []);
+			$map[$hostid] = $groups;
+		}
+
+		return $map;
 	}
 
 	/**
@@ -246,7 +313,9 @@ class ExecutiveData extends CController {
 			$params['groupids'] = $groupids;
 		}
 
-		return API::Alert()->get($params);
+		$alerts = API::Alert()->get($params);
+
+		return is_array($alerts) ? $alerts : [];
 	}
 
 	/**
@@ -262,9 +331,14 @@ class ExecutiveData extends CController {
 		]);
 
 		$map = [];
-		foreach ($groups as $group) {
-			foreach ($group['users'] as $user) {
-				$map[(int) $user['userid']] = true;
+		if (is_array($groups)) {
+			foreach ($groups as $group) {
+				if (empty($group['users'])) {
+					continue;
+				}
+				foreach ($group['users'] as $user) {
+					$map[(int) $user['userid']] = true;
+				}
 			}
 		}
 
