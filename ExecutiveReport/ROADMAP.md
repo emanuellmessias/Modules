@@ -1,5 +1,14 @@
 # ExecutiveReport v0.6
 
+## Correção crítica de carregamento
+- **Renomeada a pasta `Actions/` para `actions/` (minúsculo).** No Linux
+  (case-sensitive) o Zabbix procura os controllers em `actions/` por
+  convenção do manifest, então `Actions/` fazia o autoload falhar com
+  *"Class Modules\ExecutiveReport\Actions\ReportView não encontrada para a
+  ação executivereport.view"*. O namespace PHP continua `...\Actions`
+  (maiúsculo), igual ao módulo `noc_executive_dashboard` que já funcionava.
+  A pasta `Classes/` (maiúscula) está correta e não precisa mudar.
+
 ## Feito nesta rodada (v0.6)
 - **SLA agora é orientado a SEVERIDADE, não só a ping ICMP** (`classes/Sla.php`).
   Qualquer problema com severidade >= `SLA_MIN_SEVERITY` (padrão = Alta) conta
