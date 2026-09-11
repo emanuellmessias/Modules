@@ -6,8 +6,8 @@ zabbix_export:
     name: Templates/Applications
   templates:
   - uuid: 549b76fcef7e4ad5a92ee08fa7795eab
-    template: APM Go (client_golang) by HTTP
-    name: APM Go (client_golang) by HTTP
+    template: APM Go client-golang by HTTP
+    name: APM Go client-golang by HTTP
     description: |
       Template de APM GENERICO e DINAMICO (variante para metricas do tipo histogram).
 
@@ -185,7 +185,7 @@ zabbix_export:
           value: "{#LABELS.URI}"
       trigger_prototypes:
       - uuid: af674d6f74b44050bf5a0e3370c5bcdc
-        expression: max(/APM Go (client_golang) by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
+        expression: max(/APM Go client-golang by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
         name: 'APM: SLO violado em [{#LABELS.METHOD} {#LABELS.URI}]'
         priority: HIGH
         description: A conformidade de SLO caiu abaixo do minimo nos ultimos 10 minutos.
@@ -196,7 +196,7 @@ zabbix_export:
           value: "{#LABELS.URI}"
   triggers:
   - uuid: 6fbd3f42a3b64521a79eba3cd30ad5c3
-    expression: nodata(/APM Go (client_golang) by HTTP/apm.get_metrics,3m)=1
+    expression: nodata(/APM Go client-golang by HTTP/apm.get_metrics,3m)=1
     name: 'APM: Endpoint de metricas inacessivel'
     priority: AVERAGE
     description: Sem coleta do endpoint ha 3 minutos.

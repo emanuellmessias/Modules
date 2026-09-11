@@ -6,8 +6,8 @@ zabbix_export:
     name: Templates/Applications
   templates:
   - uuid: 765e342ae7284958ac9eb64147268569
-    template: APM Python (prometheus_client) by HTTP
-    name: APM Python (prometheus_client) by HTTP
+    template: APM Python prometheus-client by HTTP
+    name: APM Python prometheus-client by HTTP
     description: |
       Template de APM GENERICO e DINAMICO (variante para metricas do tipo histogram).
 
@@ -185,7 +185,7 @@ zabbix_export:
           value: "{#LABELS.URI}"
       trigger_prototypes:
       - uuid: 64acf49034c847bd8cb8f49be7d310ad
-        expression: max(/APM Python (prometheus_client) by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
+        expression: max(/APM Python prometheus-client by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
         name: 'APM: SLO violado em [{#LABELS.METHOD} {#LABELS.URI}]'
         priority: HIGH
         description: A conformidade de SLO caiu abaixo do minimo nos ultimos 10 minutos.
@@ -196,7 +196,7 @@ zabbix_export:
           value: "{#LABELS.URI}"
   triggers:
   - uuid: ae8a7b885bbf43f8a132d6e5804101bb
-    expression: nodata(/APM Python (prometheus_client) by HTTP/apm.get_metrics,3m)=1
+    expression: nodata(/APM Python prometheus-client by HTTP/apm.get_metrics,3m)=1
     name: 'APM: Endpoint de metricas inacessivel'
     priority: AVERAGE
     description: Sem coleta do endpoint ha 3 minutos.

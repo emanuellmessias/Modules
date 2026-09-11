@@ -5,8 +5,8 @@ zabbix_export:
       name: Templates/Applications
   templates:
     - uuid: 9633ecdd17254bdba738ecbf29a01fee
-      template: 'APM Generic (histogram) by HTTP'
-      name: 'APM Generic (histogram) by HTTP'
+      template: 'APM Generic histogram by HTTP'
+      name: 'APM Generic histogram by HTTP'
       description: |
         Template de APM GENERICO e DINAMICO (variante para metricas do tipo histogram).
 
@@ -184,7 +184,7 @@ zabbix_export:
                   value: '{#LABELS.URI}'
           trigger_prototypes:
             - uuid: 94585eb9ba9d49fba0d8ec7377bb7832
-              expression: 'max(/APM Generic (histogram) by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}'
+              expression: 'max(/APM Generic histogram by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}'
               name: 'APM: SLO violado em [{#LABELS.METHOD} {#LABELS.URI}]'
               priority: HIGH
               description: 'A conformidade de SLO caiu abaixo do minimo nos ultimos 10 minutos.'
@@ -195,7 +195,7 @@ zabbix_export:
                   value: '{#LABELS.URI}'
   triggers:
     - uuid: 91626b10518f40fab596b6b15e6bbb2b
-      expression: 'nodata(/APM Generic (histogram) by HTTP/apm.get_metrics,3m)=1'
+      expression: 'nodata(/APM Generic histogram by HTTP/apm.get_metrics,3m)=1'
       name: 'APM: Endpoint de metricas inacessivel'
       priority: AVERAGE
       description: 'Sem coleta do endpoint ha 3 minutos.'

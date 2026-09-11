@@ -6,8 +6,8 @@ zabbix_export:
     name: Templates/Applications
   templates:
   - uuid: c5c70c2e38a846cba4f6349eba9ba870
-    template: APM .NET (prometheus-net) by HTTP
-    name: APM .NET (prometheus-net) by HTTP
+    template: APM dotNET prometheus-net by HTTP
+    name: APM dotNET prometheus-net by HTTP
     description: |
       Template de APM GENERICO e DINAMICO (variante para metricas do tipo histogram).
 
@@ -185,7 +185,7 @@ zabbix_export:
           value: "{#LABELS.URI}"
       trigger_prototypes:
       - uuid: 6e7680993bd147b4ace8c60119b8f0af
-        expression: max(/APM .NET (prometheus-net) by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
+        expression: max(/APM dotNET prometheus-net by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
         name: 'APM: SLO violado em [{#LABELS.METHOD} {#LABELS.URI}]'
         priority: HIGH
         description: A conformidade de SLO caiu abaixo do minimo nos ultimos 10 minutos.
@@ -196,7 +196,7 @@ zabbix_export:
           value: "{#LABELS.URI}"
   triggers:
   - uuid: 127cd0b1032d45f2857380f26fbaf2c5
-    expression: nodata(/APM .NET (prometheus-net) by HTTP/apm.get_metrics,3m)=1
+    expression: nodata(/APM dotNET prometheus-net by HTTP/apm.get_metrics,3m)=1
     name: 'APM: Endpoint de metricas inacessivel'
     priority: AVERAGE
     description: Sem coleta do endpoint ha 3 minutos.

@@ -6,8 +6,8 @@ zabbix_export:
     name: Templates/Applications
   templates:
   - uuid: 12b8ffe1798f42989d4c155306a33a42
-    template: APM Node.js (prom-client) by HTTP
-    name: APM Node.js (prom-client) by HTTP
+    template: APM NodeJS prom-client by HTTP
+    name: APM NodeJS prom-client by HTTP
     description: |
       Template de APM GENERICO e DINAMICO (variante para metricas do tipo histogram).
 
@@ -185,7 +185,7 @@ zabbix_export:
           value: "{#LABELS.URI}"
       trigger_prototypes:
       - uuid: b20fbf6813864367a3e374d8a84c4b5f
-        expression: max(/APM Node.js (prom-client) by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
+        expression: max(/APM NodeJS prom-client by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
         name: 'APM: SLO violado em [{#LABELS.METHOD} {#LABELS.URI}]'
         priority: HIGH
         description: A conformidade de SLO caiu abaixo do minimo nos ultimos 10 minutos.
@@ -196,7 +196,7 @@ zabbix_export:
           value: "{#LABELS.URI}"
   triggers:
   - uuid: 1890a5b7b51743d5887237edc268f078
-    expression: nodata(/APM Node.js (prom-client) by HTTP/apm.get_metrics,3m)=1
+    expression: nodata(/APM NodeJS prom-client by HTTP/apm.get_metrics,3m)=1
     name: 'APM: Endpoint de metricas inacessivel'
     priority: AVERAGE
     description: Sem coleta do endpoint ha 3 minutos.

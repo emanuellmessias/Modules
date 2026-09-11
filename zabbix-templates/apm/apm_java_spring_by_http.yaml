@@ -24,7 +24,7 @@ zabbix_export:
         {#__NAME__}, {#LABELS.<label>}, {#HELP}, {#TYPE}
 
       Use esta variante se a metrica de latencia for um summary (label quantile).
-      Se for histogram (_bucket), use "APM Generic (histogram) by HTTP".
+      Se for histogram (_bucket), use "APM Generic histogram by HTTP".
     groups:
     - name: Templates/Applications
     macros:
@@ -132,17 +132,21 @@ zabbix_export:
           value: "{#LABELS.STATUS}"
       trigger_prototypes:
       - uuid: ccd4b5fa549a417597d0e6cb85eb7110
-        expression: |
-          min(/APM Java Spring Boot by HTTP/apm.requests.rate[{#LABELS.METHOD},{#LABELS.URI},{#LABELS.STATUS}],5m)>0
-          and "{#LABELS.STATUS}"=~"^5.."
-        name: 'APM: Erros 5xx em [{#LABELS.METHOD} {#LABELS.URI}]'
-        priority: HIGH
-        description: Respostas 5xx sustentadas nesta rota nos ultimos 5 minutos.
+        expression: 'min(/APM Java Spring Boot by HTTP/apm.requests.rate[{#LABELS.METHOD},{#LABELS.URI},{#LABELS.STATUS}],5m)>0'
+        name: 'APM: Requests com status {#LABELS.STATUS} em [{#LABELS.METHOD} {#LABELS.URI}]'
+        priority: INFO
+        status: DISABLED
+        description: |
+          Trigger-modelo por status (desativada por padrao). Para alertar em 5xx,
+          restrinja a descoberta com {$APM.LLD.STATUS.MATCHES} (ex: ^5) ou habilite
+          e ajuste conforme necessario.
         tags:
         - tag: component
           value: errors
         - tag: uri
           value: "{#LABELS.URI}"
+        - tag: status
+          value: "{#LABELS.STATUS}"
     - uuid: 6e7e9b9e73b1413ea1f4f831d2e1e648
       name: 'APM: Discover HTTP latency'
       type: DEPENDENT

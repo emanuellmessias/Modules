@@ -5,8 +5,8 @@ zabbix_export:
       name: Templates/Applications
   templates:
     - uuid: 4dfc3ced93cc4db588ec21157ef41f74
-      template: 'APM Generic (summary) by HTTP'
-      name: 'APM Generic (summary) by HTTP'
+      template: 'APM Generic summary by HTTP'
+      name: 'APM Generic summary by HTTP'
       description: |
         Template de APM GENERICO e DINAMICO (variante para metricas do tipo summary
         com label "quantile").
@@ -23,7 +23,7 @@ zabbix_export:
           {#__NAME__}, {#LABELS.<label>}, {#HELP}, {#TYPE}
 
         Use esta variante se a metrica de latencia for um summary (label quantile).
-        Se for histogram (_bucket), use "APM Generic (histogram) by HTTP".
+        Se for histogram (_bucket), use "APM Generic histogram by HTTP".
       groups:
         - name: Templates/Applications
       macros:
@@ -131,17 +131,21 @@ zabbix_export:
                   value: '{#LABELS.STATUS}'
           trigger_prototypes:
             - uuid: 81985aee8edc43e49ff20194bdb8cfce
-              expression: |
-                min(/APM Generic (summary) by HTTP/apm.requests.rate[{#LABELS.METHOD},{#LABELS.URI},{#LABELS.STATUS}],5m)>0
-                and "{#LABELS.STATUS}"=~"^5.."
-              name: 'APM: Erros 5xx em [{#LABELS.METHOD} {#LABELS.URI}]'
-              priority: HIGH
-              description: 'Respostas 5xx sustentadas nesta rota nos ultimos 5 minutos.'
+              expression: 'min(/APM Generic summary by HTTP/apm.requests.rate[{#LABELS.METHOD},{#LABELS.URI},{#LABELS.STATUS}],5m)>0'
+              name: 'APM: Requests com status {#LABELS.STATUS} em [{#LABELS.METHOD} {#LABELS.URI}]'
+              priority: INFO
+              status: DISABLED
+              description: |
+                Trigger-modelo por status (desativada por padrao). Para alertar em 5xx,
+                restrinja a descoberta com {$APM.LLD.STATUS.MATCHES} (ex: ^5) ou habilite
+                e ajuste conforme necessario.
               tags:
                 - tag: component
                   value: errors
                 - tag: uri
                   value: '{#LABELS.URI}'
+                - tag: status
+                  value: '{#LABELS.STATUS}'
         - uuid: 98c4c3792a8e47ce89549711d3e36961
           name: 'APM: Discover HTTP latency'
           type: DEPENDENT
@@ -193,7 +197,7 @@ zabbix_export:
                   value: '{#LABELS.URI}'
           trigger_prototypes:
             - uuid: 8e25122ec86d4402aca3ed48dbec09d3
-              expression: 'min(/APM Generic (summary) by HTTP/apm.latency.p95[{#LABELS.METHOD},{#LABELS.URI}],5m)>{$APM.LATENCY.MAX}'
+              expression: 'min(/APM Generic summary by HTTP/apm.latency.p95[{#LABELS.METHOD},{#LABELS.URI}],5m)>{$APM.LATENCY.MAX}'
               name: 'APM: Latencia p95 alta em [{#LABELS.METHOD} {#LABELS.URI}]'
               priority: WARNING
               description: 'A latencia p95 desta rota ficou acima do limiar por 5 minutos.'
@@ -204,7 +208,7 @@ zabbix_export:
                   value: '{#LABELS.URI}'
   triggers:
     - uuid: 6c3a6421a4d24bd7a5c124ef800773ac
-      expression: 'nodata(/APM Generic (summary) by HTTP/apm.get_metrics,3m)=1'
+      expression: 'nodata(/APM Generic summary by HTTP/apm.get_metrics,3m)=1'
       name: 'APM: Endpoint de metricas inacessivel'
       priority: AVERAGE
       description: 'Sem coleta do endpoint ha 3 minutos (app fora do ar ou endpoint quebrado).'
