@@ -1,0 +1,26 @@
+{
+    "manifest_version": 2.0,
+    "id": "executivereport",
+    "name": "Executive Report",
+    "namespace": "ExecutiveReport",
+    "version": "1.0.0",
+    "author": "Emanuel Oliveira",
+    "description": "Executive reports for monitored environments.",
+
+    "actions": {
+        "executivereport.view": {
+            "class": "ReportView",
+            "layout": "layout.htmlpage",
+            "view": "report.view"
+        }
+    },
+
+    "menu": {
+        "main": [
+            {
+                "label": "Executive Report",
+                "action": "executivereport.view"
+            }
+        ]
+    }
+}
