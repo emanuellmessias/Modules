@@ -104,5 +104,7 @@ ruby .generate.rb
   independentemente do case original do label na métrica.
 - **Cardinalidade.** Rotas com IDs na URL (ex.: `/users/123`) geram muitas séries. Use
   `{$APM.LLD.URI.NOT_MATCHES}` ou normalização de rota na aplicação para evitar explosão de itens.
-- Validado estruturalmente (YAML + consistência de UUID/nomes). **Teste a importação num Zabbix 7.4 real**
-  antes de usar em produção, pois os nomes de métrica/label variam conforme a instrumentação.
+- **UUIDs.** O Zabbix exige `UUID` no formato **v4** (32 hex, 13º dígito `4`, 17º em `8/9/a/b`).
+  Todos os templates já cumprem isso; o `.generate.rb` e o `.fix_uuids.rb` mantêm/reparam esse formato.
+- Validado estruturalmente (YAML + UUIDv4 válido + consistência de nomes). **Teste a importação num
+  Zabbix 7.4 real** antes de usar em produção, pois os nomes de métrica/label variam conforme a instrumentação.

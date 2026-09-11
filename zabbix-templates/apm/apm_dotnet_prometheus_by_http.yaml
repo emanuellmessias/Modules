@@ -2,10 +2,10 @@
 zabbix_export:
   version: '7.4'
   template_groups:
-  - uuid: 509a54d3ec0d62851c7a0f4d13eac792
+  - uuid: 7df96b18c230490a9a0a9d7304d4b0b1
     name: Templates/Applications
   templates:
-  - uuid: db8a10a6a03ffca874650309b2cf4cbc
+  - uuid: c5c70c2e38a846cba4f6349eba9ba870
     template: APM .NET (prometheus-net) by HTTP
     name: APM .NET (prometheus-net) by HTTP
     description: |
@@ -58,7 +58,7 @@ zabbix_export:
       value: '1'
       description: Limiar de latencia media (s) por rota para trigger.
     items:
-    - uuid: 1f93800fd98cd0e6daa1a5d8657ba878
+    - uuid: 5a831e204bd84bec9ce63c36002da02a
       name: 'APM: Get metrics'
       type: HTTP_AGENT
       key: apm.get_metrics
@@ -75,7 +75,7 @@ zabbix_export:
       - tag: component
         value: raw
     discovery_rules:
-    - uuid: 70e4b783931ea704e5784b6a17621b69
+    - uuid: dc853b3dfe2846b2a3bbabb3a426bf25
       name: 'APM: Discover HTTP latency (histogram)'
       type: DEPENDENT
       key: apm.lld.latency.hist
@@ -101,7 +101,7 @@ zabbix_export:
         - "{$APM.METRIC.LATENCY}_count"
       description: Descobre rotas a partir do contador _count do histogram.
       item_prototypes:
-      - uuid: 4aeec60797666679830fb59ee0c0ad8d
+      - uuid: 0821b72b9eb3478c9da899985be59252
         name: 'APM: Request count rate [{#LABELS.METHOD} {#LABELS.URI}]'
         type: DEPENDENT
         key: apm.hist.count.rate[{#LABELS.METHOD},{#LABELS.URI}]
@@ -124,7 +124,7 @@ zabbix_export:
           value: throughput
         - tag: uri
           value: "{#LABELS.URI}"
-      - uuid: ee4948eeda54fba09cf5eac644216016
+      - uuid: f8391b377a40437daf3538d1d6a37331
         name: 'APM: Latency avg [{#LABELS.METHOD} {#LABELS.URI}]'
         type: DEPENDENT
         key: apm.hist.latency.avg[{#LABELS.METHOD},{#LABELS.URI}]
@@ -158,7 +158,7 @@ zabbix_export:
           value: latency
         - tag: uri
           value: "{#LABELS.URI}"
-      - uuid: 69faf85120f5dd9542ebcc6283944fb6
+      - uuid: 1a6b6cc60f3543748508dd7c086b6584
         name: 'APM: SLO compliance [{#LABELS.METHOD} {#LABELS.URI}] (<= {$APM.SLO.LE}s)'
         type: DEPENDENT
         key: apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}]
@@ -184,7 +184,7 @@ zabbix_export:
         - tag: uri
           value: "{#LABELS.URI}"
       trigger_prototypes:
-      - uuid: d9666e688916b0615795ac340978339d
+      - uuid: 6e7680993bd147b4ace8c60119b8f0af
         expression: max(/APM .NET (prometheus-net) by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
         name: 'APM: SLO violado em [{#LABELS.METHOD} {#LABELS.URI}]'
         priority: HIGH
@@ -195,7 +195,7 @@ zabbix_export:
         - tag: uri
           value: "{#LABELS.URI}"
   triggers:
-  - uuid: 27e01afda67115d1e83974d3c0fa9a3d
+  - uuid: 127cd0b1032d45f2857380f26fbaf2c5
     expression: nodata(/APM .NET (prometheus-net) by HTTP/apm.get_metrics,3m)=1
     name: 'APM: Endpoint de metricas inacessivel'
     priority: AVERAGE

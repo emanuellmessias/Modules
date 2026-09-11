@@ -2,10 +2,10 @@
 zabbix_export:
   version: '7.4'
   template_groups:
-  - uuid: ed9339043faf445c8770a2f6841505c2
+  - uuid: 7df96b18c230490a9a0a9d7304d4b0b1
     name: Templates/Applications
   templates:
-  - uuid: 7103eee423534cbd21eb842bb112b221
+  - uuid: 12b8ffe1798f42989d4c155306a33a42
     template: APM Node.js (prom-client) by HTTP
     name: APM Node.js (prom-client) by HTTP
     description: |
@@ -58,7 +58,7 @@ zabbix_export:
       value: '1'
       description: Limiar de latencia media (s) por rota para trigger.
     items:
-    - uuid: 4b721a68a1a45f9bd39dd3537aa00fbf
+    - uuid: 93f8d6dc5cb4486d8c0f0ef78982861e
       name: 'APM: Get metrics'
       type: HTTP_AGENT
       key: apm.get_metrics
@@ -75,7 +75,7 @@ zabbix_export:
       - tag: component
         value: raw
     discovery_rules:
-    - uuid: f1fccbe652a94a80b6f8036b2db31477
+    - uuid: 152f6ed238194c479d97e6a2a9038410
       name: 'APM: Discover HTTP latency (histogram)'
       type: DEPENDENT
       key: apm.lld.latency.hist
@@ -101,7 +101,7 @@ zabbix_export:
         - "{$APM.METRIC.LATENCY}_count"
       description: Descobre rotas a partir do contador _count do histogram.
       item_prototypes:
-      - uuid: 28c710c5ad74778aa4eec81a1ae560f0
+      - uuid: 79edb2b4e29042739558931841ec245c
         name: 'APM: Request count rate [{#LABELS.METHOD} {#LABELS.URI}]'
         type: DEPENDENT
         key: apm.hist.count.rate[{#LABELS.METHOD},{#LABELS.URI}]
@@ -124,7 +124,7 @@ zabbix_export:
           value: throughput
         - tag: uri
           value: "{#LABELS.URI}"
-      - uuid: fcad2f6b508e30646beac54d2fba2370
+      - uuid: 9e1fc2a488c140c2b3c558c25a0aee51
         name: 'APM: Latency avg [{#LABELS.METHOD} {#LABELS.URI}]'
         type: DEPENDENT
         key: apm.hist.latency.avg[{#LABELS.METHOD},{#LABELS.URI}]
@@ -158,7 +158,7 @@ zabbix_export:
           value: latency
         - tag: uri
           value: "{#LABELS.URI}"
-      - uuid: f861025a7b5391e6efa113763a1245b1
+      - uuid: 0507bb8f3e0e44d88ed14242cb8cded1
         name: 'APM: SLO compliance [{#LABELS.METHOD} {#LABELS.URI}] (<= {$APM.SLO.LE}s)'
         type: DEPENDENT
         key: apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}]
@@ -184,7 +184,7 @@ zabbix_export:
         - tag: uri
           value: "{#LABELS.URI}"
       trigger_prototypes:
-      - uuid: 76f218b7d6f9b927faa66b3243570bdc
+      - uuid: b20fbf6813864367a3e374d8a84c4b5f
         expression: max(/APM Node.js (prom-client) by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
         name: 'APM: SLO violado em [{#LABELS.METHOD} {#LABELS.URI}]'
         priority: HIGH
@@ -195,7 +195,7 @@ zabbix_export:
         - tag: uri
           value: "{#LABELS.URI}"
   triggers:
-  - uuid: a846c48c58cdde9e76f9ebb8b488d914
+  - uuid: 1890a5b7b51743d5887237edc268f078
     expression: nodata(/APM Node.js (prom-client) by HTTP/apm.get_metrics,3m)=1
     name: 'APM: Endpoint de metricas inacessivel'
     priority: AVERAGE

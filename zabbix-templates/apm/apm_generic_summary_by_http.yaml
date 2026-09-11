@@ -1,10 +1,10 @@
 zabbix_export:
   version: '7.4'
   template_groups:
-    - uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+    - uuid: 7df96b18c230490a9a0a9d7304d4b0b1
       name: Templates/Applications
   templates:
-    - uuid: 3a9e2b7c4d5e4f6a8b1c2d3e4f5a6b70
+    - uuid: 4dfc3ced93cc4db588ec21157ef41f74
       template: 'APM Generic (summary) by HTTP'
       name: 'APM Generic (summary) by HTTP'
       description: |
@@ -61,7 +61,7 @@ zabbix_export:
           value: '1'
           description: 'Limiar de latencia p95 (segundos) por rota para trigger.'
       items:
-        - uuid: 1f0a2b3c4d5e6f7a8b9c0d1e2f3a4b50
+        - uuid: e98991bb88684a50985c0fe00638fdd8
           name: 'APM: Get metrics'
           type: HTTP_AGENT
           key: apm.get_metrics
@@ -78,7 +78,7 @@ zabbix_export:
             - tag: component
               value: raw
       discovery_rules:
-        - uuid: 9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c40
+        - uuid: 404f7abe661040e3b0aac07ffebadb57
           name: 'APM: Discover HTTP requests'
           type: DEPENDENT
           key: apm.lld.requests
@@ -104,7 +104,7 @@ zabbix_export:
                 - '{$APM.METRIC.REQUESTS}'
           description: 'Descobre series de requisicoes HTTP por rota/metodo/status.'
           item_prototypes:
-            - uuid: aa0b1c2d3e4f5a6b7c8d9e0f1a2b3c40
+            - uuid: 877f91e76c974341ae1c27e6b39aef87
               name: 'APM: Requests [{#LABELS.METHOD} {#LABELS.URI}] status {#LABELS.STATUS}'
               type: DEPENDENT
               key: 'apm.requests.rate[{#LABELS.METHOD},{#LABELS.URI},{#LABELS.STATUS}]'
@@ -130,7 +130,7 @@ zabbix_export:
                 - tag: status
                   value: '{#LABELS.STATUS}'
           trigger_prototypes:
-            - uuid: bb0b1c2d3e4f5a6b7c8d9e0f1a2b3c40
+            - uuid: 81985aee8edc43e49ff20194bdb8cfce
               expression: |
                 min(/APM Generic (summary) by HTTP/apm.requests.rate[{#LABELS.METHOD},{#LABELS.URI},{#LABELS.STATUS}],5m)>0
                 and "{#LABELS.STATUS}"=~"^5.."
@@ -142,7 +142,7 @@ zabbix_export:
                   value: errors
                 - tag: uri
                   value: '{#LABELS.URI}'
-        - uuid: 9b0b1c2d3e4f5a6b7c8d9e0f1a2b3c40
+        - uuid: 98c4c3792a8e47ce89549711d3e36961
           name: 'APM: Discover HTTP latency'
           type: DEPENDENT
           key: apm.lld.latency
@@ -171,7 +171,7 @@ zabbix_export:
                 - '{$APM.METRIC.LATENCY}'
           description: 'Descobre series de latencia (quantil 0.95) por rota.'
           item_prototypes:
-            - uuid: ac0b1c2d3e4f5a6b7c8d9e0f1a2b3c40
+            - uuid: 6155741621e34182ae8505bb4434907a
               name: 'APM: Latency p95 [{#LABELS.METHOD} {#LABELS.URI}]'
               type: DEPENDENT
               key: 'apm.latency.p95[{#LABELS.METHOD},{#LABELS.URI}]'
@@ -192,7 +192,7 @@ zabbix_export:
                 - tag: uri
                   value: '{#LABELS.URI}'
           trigger_prototypes:
-            - uuid: bc0b1c2d3e4f5a6b7c8d9e0f1a2b3c40
+            - uuid: 8e25122ec86d4402aca3ed48dbec09d3
               expression: 'min(/APM Generic (summary) by HTTP/apm.latency.p95[{#LABELS.METHOD},{#LABELS.URI}],5m)>{$APM.LATENCY.MAX}'
               name: 'APM: Latencia p95 alta em [{#LABELS.METHOD} {#LABELS.URI}]'
               priority: WARNING
@@ -203,7 +203,7 @@ zabbix_export:
                 - tag: uri
                   value: '{#LABELS.URI}'
   triggers:
-    - uuid: 8f0a2b3c4d5e6f7a8b9c0d1e2f3a4b50
+    - uuid: 6c3a6421a4d24bd7a5c124ef800773ac
       expression: 'nodata(/APM Generic (summary) by HTTP/apm.get_metrics,3m)=1'
       name: 'APM: Endpoint de metricas inacessivel'
       priority: AVERAGE

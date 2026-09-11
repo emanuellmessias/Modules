@@ -2,10 +2,10 @@
 zabbix_export:
   version: '7.4'
   template_groups:
-  - uuid: 883251f6442e20aa798d95a47218c6a3
+  - uuid: 7df96b18c230490a9a0a9d7304d4b0b1
     name: Templates/Applications
   templates:
-  - uuid: 8ce9205c95e274d94c344cbe18dce296
+  - uuid: a8085c3b23a645398c6c38ce72ea22ef
     template: APM Java Spring Boot by HTTP
     name: APM Java Spring Boot by HTTP
     description: |
@@ -62,7 +62,7 @@ zabbix_export:
       value: '1'
       description: Limiar de latencia p95 (segundos) por rota para trigger.
     items:
-    - uuid: 00025cd171a2ec61244c166a2dc6df03
+    - uuid: 4e6585c6c0ec4e21a6e447ba5c3fa190
       name: 'APM: Get metrics'
       type: HTTP_AGENT
       key: apm.get_metrics
@@ -79,7 +79,7 @@ zabbix_export:
       - tag: component
         value: raw
     discovery_rules:
-    - uuid: 92eb1b67b702694de8edc46df6d2d1d8
+    - uuid: 3a9624c787f844818d9384e253886772
       name: 'APM: Discover HTTP requests'
       type: DEPENDENT
       key: apm.lld.requests
@@ -105,7 +105,7 @@ zabbix_export:
         - "{$APM.METRIC.REQUESTS}"
       description: Descobre series de requisicoes HTTP por rota/metodo/status.
       item_prototypes:
-      - uuid: '069961427d2c6e058a10b4e76fccb61d'
+      - uuid: e793cb050ad142c0802a5b0884e2c57a
         name: 'APM: Requests [{#LABELS.METHOD} {#LABELS.URI}] status {#LABELS.STATUS}'
         type: DEPENDENT
         key: apm.requests.rate[{#LABELS.METHOD},{#LABELS.URI},{#LABELS.STATUS}]
@@ -131,7 +131,7 @@ zabbix_export:
         - tag: status
           value: "{#LABELS.STATUS}"
       trigger_prototypes:
-      - uuid: bf664e979e26e95830b4bfac0501ccd0
+      - uuid: ccd4b5fa549a417597d0e6cb85eb7110
         expression: |
           min(/APM Java Spring Boot by HTTP/apm.requests.rate[{#LABELS.METHOD},{#LABELS.URI},{#LABELS.STATUS}],5m)>0
           and "{#LABELS.STATUS}"=~"^5.."
@@ -143,7 +143,7 @@ zabbix_export:
           value: errors
         - tag: uri
           value: "{#LABELS.URI}"
-    - uuid: 14ac351f261a03eab82dfa54c06bbea7
+    - uuid: 6e7e9b9e73b1413ea1f4f831d2e1e648
       name: 'APM: Discover HTTP latency'
       type: DEPENDENT
       key: apm.lld.latency
@@ -172,7 +172,7 @@ zabbix_export:
         - "{$APM.METRIC.LATENCY}"
       description: Descobre series de latencia (quantil 0.95) por rota.
       item_prototypes:
-      - uuid: 463f7b0a1b81de47b1f0b649eb11f77d
+      - uuid: 48545c29ba674c71acbd137bb64fc707
         name: 'APM: Latency p95 [{#LABELS.METHOD} {#LABELS.URI}]'
         type: DEPENDENT
         key: apm.latency.p95[{#LABELS.METHOD},{#LABELS.URI}]
@@ -193,7 +193,7 @@ zabbix_export:
         - tag: uri
           value: "{#LABELS.URI}"
       trigger_prototypes:
-      - uuid: 7d250655042a4ee49e784f3628194a6a
+      - uuid: c9c31440b37a43c8b975e0b256314888
         expression: min(/APM Java Spring Boot by HTTP/apm.latency.p95[{#LABELS.METHOD},{#LABELS.URI}],5m)>{$APM.LATENCY.MAX}
         name: 'APM: Latencia p95 alta em [{#LABELS.METHOD} {#LABELS.URI}]'
         priority: WARNING
@@ -204,7 +204,7 @@ zabbix_export:
         - tag: uri
           value: "{#LABELS.URI}"
   triggers:
-  - uuid: 0ef1877d3add3a08223efc3e1260021b
+  - uuid: 90da68633d13495b99ef9654eecb1a65
     expression: nodata(/APM Java Spring Boot by HTTP/apm.get_metrics,3m)=1
     name: 'APM: Endpoint de metricas inacessivel'
     priority: AVERAGE
