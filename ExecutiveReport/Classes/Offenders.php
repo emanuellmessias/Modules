@@ -27,7 +27,8 @@ class Offenders {
             'output' => ['hostid', 'name'],
             'groupids' => $category_ids,
             'filter' => ['status' => 0],
-            'selectGroups' => ['groupid', 'name']
+            // Zabbix 7.0+ renomeou "selectGroups" para "selectHostGroups".
+            'selectHostGroups' => ['groupid', 'name']
         ]);
 
         if (!$hosts) {
@@ -45,7 +46,10 @@ class Offenders {
             $host_names[$hostid] = $host['name'];
             $host_categories[$hostid] = '';
 
-            foreach (($host['groups'] ?? []) as $group) {
+            // Zabbix 7.0+ retorna "hostgroups"; versões anteriores, "groups".
+            $host_groups = $host['hostgroups'] ?? $host['groups'] ?? [];
+
+            foreach ($host_groups as $group) {
                 $host_groupid = (string)$group['groupid'];
 
                 if (isset($category_names[$host_groupid])) {

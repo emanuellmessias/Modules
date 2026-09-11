@@ -1,6 +1,28 @@
-# ExecutiveReport v0.4
+# ExecutiveReport v0.5
 
-## Feito nesta rodada
+## Feito nesta rodada (v0.5)
+- Corrigido bug na "Saúde do Ambiente" (`classes/Health.php`): o
+  `problem.get` filtrava só `TRIGGER_SEVERITY_DISASTER`, então todas as
+  severidades exceto Desastre vinham zeradas. Filtro removido — agora
+  conta todas as severidades (Não classificada → Desastre), como o nome
+  da seção e o Executive Score (que usa "high") sempre pressupuseram.
+- A view agora exibe **todas** as severidades com valor > 0 (antes só
+  Desastre), e o título da seção voltou a ser "Saúde do Ambiente".
+- Corrigido `is_admin`: o controller (`actions/ReportView.php`) não
+  enviava a flag para a view, então um Super Admin com apenas 1 cliente
+  ficava travado no valor estático. Agora `is_admin` é calculado e
+  enviado no response.
+- Compatibilidade Zabbix 7.0: `Offenders` trocou `selectGroups` (removido
+  no 7.0) por `selectHostGroups`, com fallback de leitura para a chave
+  `groups`/`hostgroups`.
+- Adicionado botão "Gerar PDF" (dispara `window.print()`), que o ROADMAP
+  v0.4 prometia mas não existia no código. O CSS de impressão já estava
+  presente.
+- Removido `assets/css/executive.css`: era código morto/divergente que
+  nunca era carregado (a view usa CSS inline). Extração continua como
+  pendência abaixo.
+
+## Feito em rodada anterior (v0.4)
 - Corrigido bug de acentos sumindo (`actions/ReportView.php` e
   `classes/Statistics.php` estavam salvos em ISO-8859-1, causando
   `htmlspecialchars()` retornar string vazia nos rótulos acentuados).

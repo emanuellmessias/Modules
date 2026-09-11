@@ -23,7 +23,7 @@ $executive_score = $report['executive_score'] ?? [];
 |--------------------------------------------------------------------------
 */
 
-$str_saude_ambiente   = "Sa\u{00fa}de Cr\u{00ed}tica";
+$str_saude_ambiente   = "Sa\u{00fa}de do Ambiente";
 $str_media            = "M\u{00e9}dia";
 $str_atencao          = "Aten\u{00e7}\u{00e3}o";
 $str_informacao       = "Informa\u{00e7}\u{00e3}o";
@@ -191,6 +191,15 @@ $css = <<<CSS
 .er-form-button:hover {
     background: #3ea93e;
 }
+.er-actions-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 0 16px 0;
+}
+.er-pdf-button {
+    width: auto;
+    min-width: 160px;
+}
 .er-static-value {
     padding: 14px 16px;
     background: #111;
@@ -312,6 +321,24 @@ if ($selected_groupid == 0) {
 
 /*
 |--------------------------------------------------------------------------
+| Barra de ações (Exportar PDF via impressão do navegador)
+|--------------------------------------------------------------------------
+*/
+
+$pdf_button = new CTag('button', true, _('Gerar PDF'));
+$pdf_button->setAttribute('type', 'button');
+$pdf_button->setAttribute('onclick', 'window.print();');
+$pdf_button->addClass('er-form-button');
+$pdf_button->addClass('er-pdf-button');
+
+$actions_bar = new CDiv($pdf_button);
+$actions_bar->addClass('er-actions-bar');
+$actions_bar->addClass('er-no-print');
+
+$html_page->addItem($actions_bar);
+
+/*
+|--------------------------------------------------------------------------
 | SLA Global
 |--------------------------------------------------------------------------
 |
@@ -428,7 +455,12 @@ $v_info       = (int)($health['information']  ?? $health[1] ?? 0);
 $v_unclass    = (int)($health['not_classified'] ?? $health[0] ?? 0);
 
 $severities = [
-    ['label' => _('Desastre'), 'value' => $v_disaster, 'bg' => '#E45959', 'color' => '#FFFFFF'],
+    ['label' => _('Desastre'),        'value' => $v_disaster, 'bg' => '#E45959', 'color' => '#FFFFFF'],
+    ['label' => _('Alta'),            'value' => $v_high,     'bg' => '#E97659', 'color' => '#FFFFFF'],
+    ['label' => _($str_media),        'value' => $v_average,  'bg' => '#FFC859', 'color' => '#000000'],
+    ['label' => _($str_atencao),      'value' => $v_warning,  'bg' => '#FFF6A5', 'color' => '#000000'],
+    ['label' => _($str_informacao),   'value' => $v_info,     'bg' => '#7499FF', 'color' => '#FFFFFF'],
+    ['label' => _($str_nao_classificada), 'value' => $v_unclass, 'bg' => '#97AAB3', 'color' => '#000000'],
 ];
 
 $chip_row = new CDiv();
@@ -456,7 +488,7 @@ $html_page->addItem(new CTag('h2', true, _($str_saude_ambiente)));
 if ($chip_row->items) {
     $html_page->addItem($chip_row);
 } else {
-    $html_page->addItem(new CDiv(_('Nenhum evento em desastre ativo.')));
+    $html_page->addItem(new CDiv(_('Nenhum problema ativo no momento.')));
 }
 
 /*
