@@ -1,0 +1,211 @@
+---
+zabbix_export:
+  version: '7.4'
+  template_groups:
+  - uuid: 883251f6442e20aa798d95a47218c6a3
+    name: Templates/Applications
+  templates:
+  - uuid: 8ce9205c95e274d94c344cbe18dce296
+    template: APM Java Spring Boot by HTTP
+    name: APM Java Spring Boot by HTTP
+    description: |
+      Template de APM GENERICO e DINAMICO (variante para metricas do tipo summary
+      com label "quantile").
+
+      Funciona com qualquer aplicacao que exponha um endpoint no formato Prometheus.
+      Nao ha itens fixos: as metricas sao descobertas via Low-Level Discovery (LLD).
+
+      Arquitetura:
+        - 1 master item HTTP agent baixa toda a pagina de metricas (bulk).
+        - Regras de LLD usam PROMETHEUS_TO_JSON para descobrir as series.
+        - Item/trigger prototypes criam itens por rota/label descoberto.
+
+      Macros LLD automaticas do PROMETHEUS_TO_JSON:
+        {#__NAME__}, {#LABELS.<label>}, {#HELP}, {#TYPE}
+
+      Use esta variante se a metrica de latencia for um summary (label quantile).
+      Se for histogram (_bucket), use "APM Generic (histogram) by HTTP".
+    groups:
+    - name: Templates/Applications
+    macros:
+    - macro: "{$APM.URL}"
+      value: http://localhost:8080/actuator/prometheus
+      description: Endpoint de metricas no formato Prometheus.
+    - macro: "{$APM.HTTP.PROXY}"
+      value: ''
+      description: Proxy HTTP (deixe vazio se nao usar).
+    - macro: "{$APM.METRIC.REQUESTS}"
+      value: http_server_requests_seconds_count
+      description: Nome da metrica (contador) de requisicoes.
+    - macro: "{$APM.METRIC.LATENCY}"
+      value: http_server_requests_seconds
+      description: Nome da metrica de latencia (summary com label quantile).
+    - macro: "{$APM.LABEL.URI}"
+      value: uri
+      description: Nome do label que identifica a rota.
+    - macro: "{$APM.LABEL.METHOD}"
+      value: method
+      description: Nome do label que identifica o metodo HTTP.
+    - macro: "{$APM.LABEL.STATUS}"
+      value: status
+      description: Nome do label que identifica o status HTTP.
+    - macro: "{$APM.LLD.URI.MATCHES}"
+      value: ".*"
+      description: Regex das rotas a INCLUIR na descoberta.
+    - macro: "{$APM.LLD.URI.NOT_MATCHES}"
+      value: "^(/actuator.*|/favicon.ico)$"
+      description: Regex das rotas a EXCLUIR.
+    - macro: "{$APM.ERROR.RATE.MAX}"
+      value: '5'
+      description: Limiar (%) de erros 5xx por rota para trigger.
+    - macro: "{$APM.LATENCY.MAX}"
+      value: '1'
+      description: Limiar de latencia p95 (segundos) por rota para trigger.
+    items:
+    - uuid: 00025cd171a2ec61244c166a2dc6df03
+      name: 'APM: Get metrics'
+      type: HTTP_AGENT
+      key: apm.get_metrics
+      history: '0'
+      trends: '0'
+      value_type: TEXT
+      delay: 30s
+      timeout: 10s
+      url: "{$APM.URL}"
+      status_codes: '200'
+      http_proxy: "{$APM.HTTP.PROXY}"
+      description: Baixa toda a pagina de metricas Prometheus de uma vez (master item).
+      tags:
+      - tag: component
+        value: raw
+    discovery_rules:
+    - uuid: 92eb1b67b702694de8edc46df6d2d1d8
+      name: 'APM: Discover HTTP requests'
+      type: DEPENDENT
+      key: apm.lld.requests
+      delay: '0'
+      master_item:
+        key: apm.get_metrics
+      filter:
+        evaltype: AND
+        conditions:
+        - macro: "{#__NAME__}"
+          value: "{$APM.METRIC.REQUESTS}"
+          formulaid: A
+        - macro: "{#LABELS.URI}"
+          value: "{$APM.LLD.URI.MATCHES}"
+          formulaid: B
+        - macro: "{#LABELS.URI}"
+          value: "{$APM.LLD.URI.NOT_MATCHES}"
+          operator: NOT_MATCHES_REGEX
+          formulaid: C
+      preprocessing:
+      - type: PROMETHEUS_TO_JSON
+        parameters:
+        - "{$APM.METRIC.REQUESTS}"
+      description: Descobre series de requisicoes HTTP por rota/metodo/status.
+      item_prototypes:
+      - uuid: '069961427d2c6e058a10b4e76fccb61d'
+        name: 'APM: Requests [{#LABELS.METHOD} {#LABELS.URI}] status {#LABELS.STATUS}'
+        type: DEPENDENT
+        key: apm.requests.rate[{#LABELS.METHOD},{#LABELS.URI},{#LABELS.STATUS}]
+        value_type: FLOAT
+        units: "!rps"
+        master_item:
+          key: apm.get_metrics
+        preprocessing:
+        - type: PROMETHEUS_PATTERN
+          parameters:
+          - '{$APM.METRIC.REQUESTS}{{$APM.LABEL.URI}="{#LABELS.URI}",{$APM.LABEL.METHOD}="{#LABELS.METHOD}",{$APM.LABEL.STATUS}="{#LABELS.STATUS}"}'
+          - value
+          - ''
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        description: Requisicoes por segundo para esta combinacao rota/metodo/status.
+        tags:
+        - tag: component
+          value: throughput
+        - tag: uri
+          value: "{#LABELS.URI}"
+        - tag: status
+          value: "{#LABELS.STATUS}"
+      trigger_prototypes:
+      - uuid: bf664e979e26e95830b4bfac0501ccd0
+        expression: |
+          min(/APM Java Spring Boot by HTTP/apm.requests.rate[{#LABELS.METHOD},{#LABELS.URI},{#LABELS.STATUS}],5m)>0
+          and "{#LABELS.STATUS}"=~"^5.."
+        name: 'APM: Erros 5xx em [{#LABELS.METHOD} {#LABELS.URI}]'
+        priority: HIGH
+        description: Respostas 5xx sustentadas nesta rota nos ultimos 5 minutos.
+        tags:
+        - tag: component
+          value: errors
+        - tag: uri
+          value: "{#LABELS.URI}"
+    - uuid: 14ac351f261a03eab82dfa54c06bbea7
+      name: 'APM: Discover HTTP latency'
+      type: DEPENDENT
+      key: apm.lld.latency
+      delay: '0'
+      master_item:
+        key: apm.get_metrics
+      filter:
+        evaltype: AND
+        conditions:
+        - macro: "{#__NAME__}"
+          value: "{$APM.METRIC.LATENCY}"
+          formulaid: A
+        - macro: "{#LABELS.QUANTILE}"
+          value: '0.95'
+          formulaid: B
+        - macro: "{#LABELS.URI}"
+          value: "{$APM.LLD.URI.MATCHES}"
+          formulaid: C
+        - macro: "{#LABELS.URI}"
+          value: "{$APM.LLD.URI.NOT_MATCHES}"
+          operator: NOT_MATCHES_REGEX
+          formulaid: D
+      preprocessing:
+      - type: PROMETHEUS_TO_JSON
+        parameters:
+        - "{$APM.METRIC.LATENCY}"
+      description: Descobre series de latencia (quantil 0.95) por rota.
+      item_prototypes:
+      - uuid: 463f7b0a1b81de47b1f0b649eb11f77d
+        name: 'APM: Latency p95 [{#LABELS.METHOD} {#LABELS.URI}]'
+        type: DEPENDENT
+        key: apm.latency.p95[{#LABELS.METHOD},{#LABELS.URI}]
+        value_type: FLOAT
+        units: s
+        master_item:
+          key: apm.get_metrics
+        preprocessing:
+        - type: PROMETHEUS_PATTERN
+          parameters:
+          - '{$APM.METRIC.LATENCY}{{$APM.LABEL.URI}="{#LABELS.URI}",{$APM.LABEL.METHOD}="{#LABELS.METHOD}",quantile="0.95"}'
+          - value
+          - ''
+        description: Latencia p95 desta rota.
+        tags:
+        - tag: component
+          value: latency
+        - tag: uri
+          value: "{#LABELS.URI}"
+      trigger_prototypes:
+      - uuid: 7d250655042a4ee49e784f3628194a6a
+        expression: min(/APM Java Spring Boot by HTTP/apm.latency.p95[{#LABELS.METHOD},{#LABELS.URI}],5m)>{$APM.LATENCY.MAX}
+        name: 'APM: Latencia p95 alta em [{#LABELS.METHOD} {#LABELS.URI}]'
+        priority: WARNING
+        description: A latencia p95 desta rota ficou acima do limiar por 5 minutos.
+        tags:
+        - tag: component
+          value: latency
+        - tag: uri
+          value: "{#LABELS.URI}"
+  triggers:
+  - uuid: 0ef1877d3add3a08223efc3e1260021b
+    expression: nodata(/APM Java Spring Boot by HTTP/apm.get_metrics,3m)=1
+    name: 'APM: Endpoint de metricas inacessivel'
+    priority: AVERAGE
+    description: Sem coleta do endpoint ha 3 minutos (app fora do ar ou endpoint quebrado).

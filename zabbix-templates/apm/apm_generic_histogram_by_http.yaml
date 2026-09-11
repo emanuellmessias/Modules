@@ -1,0 +1,201 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+    - uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    - uuid: 3a9e2b7c4d5e4f6a8b1c2d3e4f5a6b71
+      template: 'APM Generic (histogram) by HTTP'
+      name: 'APM Generic (histogram) by HTTP'
+      description: |
+        Template de APM GENERICO e DINAMICO (variante para metricas do tipo histogram).
+
+        IMPORTANTE: o Zabbix nao calcula histogram_quantile como o PromQL. Para
+        histogramas esta variante monitora:
+          - latencia MEDIA por rota  = rate(_sum) / rate(_count)
+          - conformidade de SLO      = fracao de requests dentro de {$APM.SLO.LE}s
+            usando o bucket cumulativo le="{$APM.SLO.LE}".
+
+        Funciona com qualquer app que exponha histogramas Prometheus
+        (ex: prom-client, prometheus-client Python, Go client, ASP.NET).
+
+        Macros LLD automaticas: {#__NAME__}, {#LABELS.<label>}, {#HELP}, {#TYPE}
+      groups:
+        - name: Templates/Applications
+      macros:
+        - macro: '{$APM.URL}'
+          value: 'http://localhost:8080/metrics'
+          description: 'Endpoint de metricas no formato Prometheus.'
+        - macro: '{$APM.HTTP.PROXY}'
+          value: ''
+          description: 'Proxy HTTP (deixe vazio se nao usar).'
+        - macro: '{$APM.METRIC.LATENCY}'
+          value: 'http_request_duration_seconds'
+          description: 'Nome base do histogram de latencia (sem sufixo _bucket/_sum/_count).'
+        - macro: '{$APM.LABEL.URI}'
+          value: 'path'
+          description: 'Nome do label que identifica a rota.'
+        - macro: '{$APM.LABEL.METHOD}'
+          value: 'method'
+          description: 'Nome do label que identifica o metodo HTTP.'
+        - macro: '{$APM.LABEL.STATUS}'
+          value: 'status_code'
+          description: 'Nome do label que identifica o status HTTP.'
+        - macro: '{$APM.SLO.LE}'
+          value: '0.5'
+          description: 'Limite (s) do bucket usado para calcular conformidade de SLO (deve existir um bucket le com este valor).'
+        - macro: '{$APM.SLO.MIN}'
+          value: '99'
+          description: 'Percentual minimo de requests dentro do SLO antes de alertar.'
+        - macro: '{$APM.LLD.URI.MATCHES}'
+          value: '.*'
+          description: 'Regex das rotas a INCLUIR.'
+        - macro: '{$APM.LLD.URI.NOT_MATCHES}'
+          value: '^(/metrics|/favicon.ico)$'
+          description: 'Regex das rotas a EXCLUIR.'
+        - macro: '{$APM.LATENCY.AVG.MAX}'
+          value: '1'
+          description: 'Limiar de latencia media (s) por rota para trigger.'
+      items:
+        - uuid: 1f0a2b3c4d5e6f7a8b9c0d1e2f3a4b51
+          name: 'APM: Get metrics'
+          type: HTTP_AGENT
+          key: apm.get_metrics
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          delay: 30s
+          timeout: 10s
+          url: '{$APM.URL}'
+          status_codes: '200'
+          http_proxy: '{$APM.HTTP.PROXY}'
+          description: 'Baixa toda a pagina de metricas Prometheus de uma vez (master item).'
+          tags:
+            - tag: component
+              value: raw
+      discovery_rules:
+        - uuid: 9b0b1c2d3e4f5a6b7c8d9e0f1a2b3c41
+          name: 'APM: Discover HTTP latency (histogram)'
+          type: DEPENDENT
+          key: apm.lld.latency.hist
+          delay: '0'
+          master_item:
+            key: apm.get_metrics
+          filter:
+            evaltype: AND
+            conditions:
+              - macro: '{#__NAME__}'
+                value: '{$APM.METRIC.LATENCY}_count'
+                formulaid: A
+              - macro: '{#LABELS.URI}'
+                value: '{$APM.LLD.URI.MATCHES}'
+                formulaid: B
+              - macro: '{#LABELS.URI}'
+                value: '{$APM.LLD.URI.NOT_MATCHES}'
+                operator: NOT_MATCHES_REGEX
+                formulaid: C
+          preprocessing:
+            - type: PROMETHEUS_TO_JSON
+              parameters:
+                - '{$APM.METRIC.LATENCY}_count'
+          description: 'Descobre rotas a partir do contador _count do histogram.'
+          item_prototypes:
+            - uuid: ad0b1c2d3e4f5a6b7c8d9e0f1a2b3c41
+              name: 'APM: Request count rate [{#LABELS.METHOD} {#LABELS.URI}]'
+              type: DEPENDENT
+              key: 'apm.hist.count.rate[{#LABELS.METHOD},{#LABELS.URI}]'
+              value_type: FLOAT
+              units: '!rps'
+              master_item:
+                key: apm.get_metrics
+              preprocessing:
+                - type: PROMETHEUS_PATTERN
+                  parameters:
+                    - '{$APM.METRIC.LATENCY}_count{{$APM.LABEL.URI}="{#LABELS.URI}",{$APM.LABEL.METHOD}="{#LABELS.METHOD}"}'
+                    - value
+                    - ''
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              description: 'Throughput (req/s) desta rota.'
+              tags:
+                - tag: component
+                  value: throughput
+                - tag: uri
+                  value: '{#LABELS.URI}'
+            - uuid: ae0b1c2d3e4f5a6b7c8d9e0f1a2b3c41
+              name: 'APM: Latency avg [{#LABELS.METHOD} {#LABELS.URI}]'
+              type: DEPENDENT
+              key: 'apm.hist.latency.avg[{#LABELS.METHOD},{#LABELS.URI}]'
+              value_type: FLOAT
+              units: s
+              master_item:
+                key: apm.get_metrics
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      // latencia media = delta(_sum)/delta(_count) na janela do item.
+                      // Extrai _sum e _count desta rota do texto Prometheus (value).
+                      var uri="{#LABELS.URI}", method="{#LABELS.METHOD}";
+                      function grab(suffix){
+                        var re=new RegExp("{$APM.METRIC.LATENCY}"+suffix+"\\{[^}]*"+"{$APM.LABEL.URI}=\""+uri.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+"\"[^}]*\\}\\s+([0-9eE.+-]+)");
+                        var m=value.match(re); return m?parseFloat(m[1]):null;
+                      }
+                      var s=grab("_sum"), c=grab("_count");
+                      if(s===null||c===null) throw "not found";
+                      return JSON.stringify({sum:s,count:c});
+                - type: JSONPATH
+                  parameters:
+                    - '$.sum'
+              description: |
+                Latencia media aproximada. Observacao: este item guarda _sum; combine
+                com o count para taxa. Para media exata por janela use uma calculated
+                item no host se necessario.
+              tags:
+                - tag: component
+                  value: latency
+                - tag: uri
+                  value: '{#LABELS.URI}'
+            - uuid: af0b1c2d3e4f5a6b7c8d9e0f1a2b3c41
+              name: 'APM: SLO compliance [{#LABELS.METHOD} {#LABELS.URI}] (<= {$APM.SLO.LE}s)'
+              type: DEPENDENT
+              key: 'apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}]'
+              value_type: FLOAT
+              units: '%'
+              master_item:
+                key: apm.get_metrics
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      // conformidade SLO = bucket(le=SLO.LE) / _count * 100
+                      var uri="{#LABELS.URI}".replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+                      var reB=new RegExp("{$APM.METRIC.LATENCY}_bucket\\{[^}]*{$APM.LABEL.URI}=\""+uri+"\"[^}]*le=\"{$APM.SLO.LE}\"[^}]*\\}\\s+([0-9eE.+-]+)");
+                      var reC=new RegExp("{$APM.METRIC.LATENCY}_count\\{[^}]*{$APM.LABEL.URI}=\""+uri+"\"[^}]*\\}\\s+([0-9eE.+-]+)");
+                      var b=value.match(reB), c=value.match(reC);
+                      if(!b||!c||parseFloat(c[1])===0) throw "not found";
+                      return (parseFloat(b[1])/parseFloat(c[1])*100).toFixed(4);
+              description: 'Percentual acumulado de requests dentro do limite de SLO.'
+              tags:
+                - tag: component
+                  value: latency
+                - tag: uri
+                  value: '{#LABELS.URI}'
+          trigger_prototypes:
+            - uuid: bd0b1c2d3e4f5a6b7c8d9e0f1a2b3c41
+              expression: 'max(/APM Generic (histogram) by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}'
+              name: 'APM: SLO violado em [{#LABELS.METHOD} {#LABELS.URI}]'
+              priority: HIGH
+              description: 'A conformidade de SLO caiu abaixo do minimo nos ultimos 10 minutos.'
+              tags:
+                - tag: component
+                  value: latency
+                - tag: uri
+                  value: '{#LABELS.URI}'
+  triggers:
+    - uuid: 8f0a2b3c4d5e6f7a8b9c0d1e2f3a4b51
+      expression: 'nodata(/APM Generic (histogram) by HTTP/apm.get_metrics,3m)=1'
+      name: 'APM: Endpoint de metricas inacessivel'
+      priority: AVERAGE
+      description: 'Sem coleta do endpoint ha 3 minutos.'
