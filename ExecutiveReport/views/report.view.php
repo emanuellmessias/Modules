@@ -327,7 +327,7 @@ if ($selected_groupid == 0) {
 
 $pdf_button = new CTag('button', true, _('Gerar PDF'));
 $pdf_button->setAttribute('type', 'button');
-$pdf_button->setAttribute('onclick', 'window.print();');
+$pdf_button->setAttribute('id', 'er-export-pdf');
 $pdf_button->addClass('er-form-button');
 $pdf_button->addClass('er-pdf-button');
 
@@ -336,6 +336,58 @@ $actions_bar->addClass('er-actions-bar');
 $actions_bar->addClass('er-no-print');
 
 $html_page->addItem($actions_bar);
+
+/*
+|--------------------------------------------------------------------------
+| Carregamento das libs de PDF (html2canvas + jsPDF) e do script do módulo.
+|
+| Estratégia híbrida: tenta os arquivos locais em assets/js/vendor/ e, se
+| não existirem, faz fallback para o CDN jsDelivr. Ao final, dispara
+| ExecutiveReportPdf.init(). Nenhum window.print() é usado.
+|--------------------------------------------------------------------------
+*/
+
+$pdf_loader_js = <<<'JS'
+(function () {
+	var base = 'modules/ExecutiveReport/assets/js/';
+	var vendor = base + 'vendor/';
+	var cdn = {
+		html2canvas: 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+		jspdf: 'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js'
+	};
+
+	function loadScript(src) {
+		return new Promise(function (resolve, reject) {
+			var s = document.createElement('script');
+			s.src = src;
+			s.onload = function () { resolve(src); };
+			s.onerror = function () { reject(src); };
+			document.head.appendChild(s);
+		});
+	}
+
+	// Tenta local; se falhar, cai para o CDN.
+	function loadWithFallback(localSrc, cdnSrc) {
+		return loadScript(localSrc).catch(function () { return loadScript(cdnSrc); });
+	}
+
+	Promise.all([
+		loadWithFallback(vendor + 'html2canvas.min.js', cdn.html2canvas),
+		loadWithFallback(vendor + 'jspdf.umd.min.js', cdn.jspdf)
+	])
+	.then(function () { return loadScript(base + 'executive-report.js'); })
+	.then(function () {
+		if (window.ExecutiveReportPdf) {
+			window.ExecutiveReportPdf.init();
+		}
+	})
+	.catch(function (err) {
+		console.error('Executive Report: falha ao carregar libs de PDF', err);
+	});
+})();
+JS;
+
+$html_page->addItem(new CTag('script', true, $pdf_loader_js));
 
 /*
 |--------------------------------------------------------------------------
