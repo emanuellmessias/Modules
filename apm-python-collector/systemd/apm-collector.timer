@@ -1,0 +1,14 @@
+[Unit]
+Description=Executa o APM collector periodicamente
+Documentation=https://github.com/emanuellmessias/Modules/tree/main/apm-python-collector
+
+[Timer]
+# A cada 30s. O rate por segundo e calculado entre execucoes, entao
+# mantenha o intervalo estavel (deve casar com o "delay" esperado no Zabbix).
+OnBootSec=30
+OnUnitActiveSec=30
+AccuracySec=1s
+Unit=apm-collector.service
+
+[Install]
+WantedBy=timers.target
