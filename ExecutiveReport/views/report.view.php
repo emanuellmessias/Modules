@@ -28,7 +28,7 @@ $str_media            = "M\u{00e9}dia";
 $str_atencao          = "Aten\u{00e7}\u{00e3}o";
 $str_informacao       = "Informa\u{00e7}\u{00e3}o";
 $str_nao_classificada = "N\u{00e3}o classificada";
-$str_sla_global       = "SLA ICMP";
+$str_sla_global       = "SLA Disponibilidade";
 $str_periodo          = "Per\u{00ed}odo";
 $str_score_executivo  = "Executive Score";
 $str_hosts_indisp     = "HOSTS INDISPONIVEIS NO PERIODO";
@@ -399,7 +399,7 @@ $score_panel->addItem($score_track);
 
 $html_page->addItem(new CTag('h2', true, _($str_score_executivo)));
 $html_page->addItem($score_panel);
-$score_note = new CDiv(_('Score baseado em disponibilidade ICMP, impactos ativos e eventos em desastre.'));
+$score_note = new CDiv(_('Score baseado na disponibilidade do serviço (SLA por severidade), impactos ativos, hosts indisponíveis e eventos críticos.'));
 $score_note->addClass('er-muted-note');
 $html_page->addItem($score_note);
 
@@ -501,6 +501,10 @@ $offenders = $report['offenders'] ?? [];
 
 $html_page->addItem(new CTag('h2', true, _('Indisponibilidade ICMP')));
 
+$offenders_note = new CDiv(_('Quedas totais de rede (ping sem resposta) no período. Camada mais drástica que o SLA de disponibilidade acima.'));
+$offenders_note->addClass('er-muted-note');
+$html_page->addItem($offenders_note);
+
 $colHeader1 = new CColHeader(_('Falhas ICMP'));
 $colHeader1->setAttribute('style', 'text-align: center; width: 100px;');
 $colHeader2 = new CColHeader(_('Tempo sem resposta'));
@@ -556,7 +560,7 @@ $table = new CTableInfo();
     $tableHeader2->setAttribute('style', 'text-align: center; width: 100px;');
     $tableHeader3 = new CColHeader(_('Triggers'));
     $tableHeader3->setAttribute('style', 'text-align: center; width: 100px;');
-    $tableHeader4 = new CColHeader(_('SLA ICMP') . " ({$selected_period}d)");
+    $tableHeader4 = new CColHeader(_('SLA') . " ({$selected_period}d)");
     $tableHeader4->setAttribute('style', 'text-align: center; width: 140px;');
     $tableHeader5 = new CColHeader(_('Impactos'));
     $tableHeader5->setAttribute('style', 'text-align: center; width: 120px;');

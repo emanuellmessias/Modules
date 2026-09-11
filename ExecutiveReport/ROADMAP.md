@@ -1,6 +1,24 @@
-# ExecutiveReport v0.5
+# ExecutiveReport v0.6
 
-## Feito nesta rodada (v0.5)
+## Feito nesta rodada (v0.6)
+- **SLA agora é orientado a SEVERIDADE, não só a ping ICMP** (`classes/Sla.php`).
+  Qualquer problema com severidade >= `SLA_MIN_SEVERITY` (padrão = Alta) conta
+  como downtime, usando a mesma união de intervalos de antes. O objetivo é que
+  o SLA responda "o serviço esteve disponível?" e não apenas "a máquina
+  respondeu ping?". Um banco travado (Desastre) agora derruba o SLA mesmo com
+  ICMP OK. Modo legado disponível via `Sla::SLA_MODE = 'icmp'`.
+- A seção **"Indisponibilidade ICMP"** (`classes/Offenders.php`) foi mantida como
+  camada separada e mais drástica (quedas totais de rede), agora com piso de
+  severidade próprio (`Offenders::ICMP_MIN_SEVERITY`), independente do SLA.
+- **Executive Score recalibrado** (`classes/ExecutiveScore.php`) para refletir a
+  nova saúde do ambiente: penalidades com tetos por dimensão
+  (Disponibilidade -40, Impactos -20, Hosts down -15, Críticos Alta+Desastre
+  -25) e um `breakdown` retornado para transparência.
+- Rótulos da view ajustados: KPI "SLA Disponibilidade", header de categoria
+  "SLA", e nota do score explicando as dimensões. Nota adicionada na seção ICMP
+  deixando claro que ela é a camada de quedas de rede.
+
+## Feito em rodada anterior (v0.5)
 - Corrigido bug na "Saúde do Ambiente" (`classes/Health.php`): o
   `problem.get` filtrava só `TRIGGER_SEVERITY_DISASTER`, então todas as
   severidades exceto Desastre vinham zeradas. Filtro removido — agora
