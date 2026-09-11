@@ -9,11 +9,19 @@ DIR = File.dirname(File.expand_path(__FILE__))
 SUMMARY = YAML.load_file(File.join(DIR, 'apm_generic_summary_by_http.yaml'))
 HIST    = YAML.load_file(File.join(DIR, 'apm_generic_histogram_by_http.yaml'))
 
-# Deriva UUID deterministico (32 hex) a partir de uma seed, para nao colidir entre templates.
+# Deriva UUIDv4 valido (32 hex sem hifens; 13o digito "4", 17o em {8,9,a,b}) a partir
+# de uma seed, para nao colidir entre templates. O Zabbix EXIGE UUIDv4 na importacao.
+def v4_from(seed)
+  h = Digest::SHA256.hexdigest(seed)[0, 32].chars
+  h[12] = '4'
+  h[16] = %w[8 9 a b][h[16].to_i(16) % 4]
+  h.join
+end
+
 def uuidify(obj, salt)
   case obj
   when Hash
-    obj.each { |k, v| obj[k] = (k == 'uuid' ? Digest::MD5.hexdigest(v.to_s + salt) : uuidify(v, salt)) }
+    obj.each { |k, v| obj[k] = (k == 'uuid' ? v4_from(v.to_s + salt) : uuidify(v, salt)) }
     obj
   when Array
     obj.map { |e| uuidify(e, salt) }
@@ -53,25 +61,25 @@ STACKS = [
     '{$APM.LABEL.URI}' => 'uri', '{$APM.LABEL.METHOD}' => 'method', '{$APM.LABEL.STATUS}' => 'status',
     '{$APM.LLD.URI.NOT_MATCHES}' => '^(/actuator.*|/favicon.ico)$'
   }],
-  ['apm_nodejs_promclient_by_http.yaml', :histogram, 'APM Node.js (prom-client) by HTTP', {
+  ['apm_nodejs_promclient_by_http.yaml', :histogram, 'APM NodeJS prom-client by HTTP', {
     '{$APM.URL}' => 'http://localhost:3000/metrics',
     '{$APM.METRIC.LATENCY}' => 'http_request_duration_seconds',
     '{$APM.LABEL.URI}' => 'route', '{$APM.LABEL.METHOD}' => 'method', '{$APM.LABEL.STATUS}' => 'code',
     '{$APM.LLD.URI.NOT_MATCHES}' => '^(/metrics|/favicon.ico)$'
   }],
-  ['apm_python_prometheus_by_http.yaml', :histogram, 'APM Python (prometheus_client) by HTTP', {
+  ['apm_python_prometheus_by_http.yaml', :histogram, 'APM Python prometheus-client by HTTP', {
     '{$APM.URL}' => 'http://localhost:8000/metrics',
     '{$APM.METRIC.LATENCY}' => 'http_request_duration_seconds',
     '{$APM.LABEL.URI}' => 'handler', '{$APM.LABEL.METHOD}' => 'method', '{$APM.LABEL.STATUS}' => 'status',
     '{$APM.LLD.URI.NOT_MATCHES}' => '^(/metrics|/favicon.ico)$'
   }],
-  ['apm_go_client_by_http.yaml', :histogram, 'APM Go (client_golang) by HTTP', {
+  ['apm_go_client_by_http.yaml', :histogram, 'APM Go client-golang by HTTP', {
     '{$APM.URL}' => 'http://localhost:2112/metrics',
     '{$APM.METRIC.LATENCY}' => 'http_request_duration_seconds',
     '{$APM.LABEL.URI}' => 'path', '{$APM.LABEL.METHOD}' => 'method', '{$APM.LABEL.STATUS}' => 'code',
     '{$APM.LLD.URI.NOT_MATCHES}' => '^(/metrics|/favicon.ico)$'
   }],
-  ['apm_dotnet_prometheus_by_http.yaml', :histogram, 'APM .NET (prometheus-net) by HTTP', {
+  ['apm_dotnet_prometheus_by_http.yaml', :histogram, 'APM dotNET prometheus-net by HTTP', {
     '{$APM.URL}' => 'http://localhost:5000/metrics',
     '{$APM.METRIC.LATENCY}' => 'http_request_duration_seconds',
     '{$APM.LABEL.URI}' => 'controller', '{$APM.LABEL.METHOD}' => 'method', '{$APM.LABEL.STATUS}' => 'code',

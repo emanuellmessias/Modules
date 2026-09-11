@@ -2,12 +2,12 @@
 zabbix_export:
   version: '7.4'
   template_groups:
-  - uuid: 3abaad624170030d64d75d113cdd1ed3
+  - uuid: 7df96b18c230490a9a0a9d7304d4b0b1
     name: Templates/Applications
   templates:
-  - uuid: 2738c20dc8c6c7c896f0ec7ec82b3cfb
-    template: APM Go (client_golang) by HTTP
-    name: APM Go (client_golang) by HTTP
+  - uuid: 549b76fcef7e4ad5a92ee08fa7795eab
+    template: APM Go client-golang by HTTP
+    name: APM Go client-golang by HTTP
     description: |
       Template de APM GENERICO e DINAMICO (variante para metricas do tipo histogram).
 
@@ -58,7 +58,7 @@ zabbix_export:
       value: '1'
       description: Limiar de latencia media (s) por rota para trigger.
     items:
-    - uuid: 843e64692436066e3e402db2f1c853b8
+    - uuid: df2e542107534538b0524f3e23b6cdf6
       name: 'APM: Get metrics'
       type: HTTP_AGENT
       key: apm.get_metrics
@@ -75,7 +75,7 @@ zabbix_export:
       - tag: component
         value: raw
     discovery_rules:
-    - uuid: a50cd94141deb8bcc41eed0796eb50f7
+    - uuid: b8df4ce31193407ab4dd6b911ccd032e
       name: 'APM: Discover HTTP latency (histogram)'
       type: DEPENDENT
       key: apm.lld.latency.hist
@@ -101,7 +101,7 @@ zabbix_export:
         - "{$APM.METRIC.LATENCY}_count"
       description: Descobre rotas a partir do contador _count do histogram.
       item_prototypes:
-      - uuid: ca96c9955b02b5f2dd73eb8d19813e68
+      - uuid: 66c9f5249d8d4870bd872f7fc8909967
         name: 'APM: Request count rate [{#LABELS.METHOD} {#LABELS.URI}]'
         type: DEPENDENT
         key: apm.hist.count.rate[{#LABELS.METHOD},{#LABELS.URI}]
@@ -124,7 +124,7 @@ zabbix_export:
           value: throughput
         - tag: uri
           value: "{#LABELS.URI}"
-      - uuid: c7cd312c63e87e7d788c7648a9449777
+      - uuid: dc5d76f8f21945638a87dd6147c06234
         name: 'APM: Latency avg [{#LABELS.METHOD} {#LABELS.URI}]'
         type: DEPENDENT
         key: apm.hist.latency.avg[{#LABELS.METHOD},{#LABELS.URI}]
@@ -158,7 +158,7 @@ zabbix_export:
           value: latency
         - tag: uri
           value: "{#LABELS.URI}"
-      - uuid: 4d21a0221a85c3134e1ad3e8070c8037
+      - uuid: e98d15192e9347f996830d8004b62093
         name: 'APM: SLO compliance [{#LABELS.METHOD} {#LABELS.URI}] (<= {$APM.SLO.LE}s)'
         type: DEPENDENT
         key: apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}]
@@ -184,8 +184,8 @@ zabbix_export:
         - tag: uri
           value: "{#LABELS.URI}"
       trigger_prototypes:
-      - uuid: a28ad892ed09693da4d3bd7ce4bfd1ef
-        expression: max(/APM Go (client_golang) by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
+      - uuid: af674d6f74b44050bf5a0e3370c5bcdc
+        expression: max(/APM Go client-golang by HTTP/apm.hist.slo[{#LABELS.METHOD},{#LABELS.URI}],10m)<{$APM.SLO.MIN}
         name: 'APM: SLO violado em [{#LABELS.METHOD} {#LABELS.URI}]'
         priority: HIGH
         description: A conformidade de SLO caiu abaixo do minimo nos ultimos 10 minutos.
@@ -195,8 +195,8 @@ zabbix_export:
         - tag: uri
           value: "{#LABELS.URI}"
   triggers:
-  - uuid: b6b0ec2ea624afb38ecf3284dfd34adc
-    expression: nodata(/APM Go (client_golang) by HTTP/apm.get_metrics,3m)=1
+  - uuid: 6fbd3f42a3b64521a79eba3cd30ad5c3
+    expression: nodata(/APM Go client-golang by HTTP/apm.get_metrics,3m)=1
     name: 'APM: Endpoint de metricas inacessivel'
     priority: AVERAGE
     description: Sem coleta do endpoint ha 3 minutos.
