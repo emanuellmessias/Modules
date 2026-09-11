@@ -1,9 +1,0 @@
-/* Executive Report */
-.er-kpi-grid{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0 20px}
-.er-kpi-card{flex:1 1 180px;background:var(--ui-bg,#2b2b2b);border:1px solid #3a3a3a;border-radius:6px;padding:14px 16px}
-.er-kpi-card.er-highlight{border-color:#59DB59}
-.er-kpi-label{text-transform:uppercase;font-size:11px;color:#999;margin-bottom:8px}
-.er-kpi-value{font-size:30px;font-weight:700}
-.er-chip-row{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 20px}
-.er-chip{display:flex;align-items:center;gap:8px;border:1px solid #3a3a3a;border-radius:20px;padding:6px 14px}
-.er-chip-badge{padding:2px 8px;border-radius:4px;font-weight:700}

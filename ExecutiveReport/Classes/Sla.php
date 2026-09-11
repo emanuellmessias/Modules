@@ -3,14 +3,23 @@
 namespace Modules\ExecutiveReport\Classes;
 
 /**
- * Calcula o SLA (percentual de disponibilidade) de um conjunto de hosts,
- * com base apenas em eventos de ICMP ping sem resposta dentro da janela
- * de tempo analisada.
+ * Calcula o SLA (percentual de disponibilidade) de um conjunto de hosts.
+ *
+ * A partir da v0.6 o SLA é orientado a SEVERIDADE, não mais só a ping ICMP:
+ * qualquer evento de problema com severidade >= SLA_MIN_SEVERITY conta como
+ * downtime. A ideia é que o SLA reflita "o serviço esteve disponível?" e não
+ * apenas "a máquina respondeu ping?" — um banco travado (Desastre) derruba o
+ * SLA mesmo que o host continue respondendo ICMP.
+ *
+ * A visão específica de queda total de rede (ICMP sem resposta) continua
+ * existindo, porém isolada na classe Offenders (seção "Indisponibilidade
+ * ICMP"), como uma camada de detalhe mais drástica.
  *
  * Método:
- *  1. Busca os eventos de problema (início) no período, via event.get;
- *  2. Descobre o clock de resolução de cada um (ou considera "ainda
- *     aberto até agora" se não foi resolvido);
+ *  1. Busca os eventos de problema (início) no período, via event.get,
+ *     filtrando por severidade;
+ *  2. Descobre o clock de resolução de cada um (ou considera "ainda aberto
+ *     até agora" se não foi resolvido);
  *  3. Faz a UNIÃO dos intervalos [início, fim] (para não contar downtime
  *     duas vezes quando problemas se sobrepõem no tempo, inclusive entre
  *     hosts diferentes do mesmo grupo/categoria);
@@ -19,14 +28,24 @@ namespace Modules\ExecutiveReport\Classes;
 class Sla {
 
     /**
-     * Severidade mínima considerada para impactar o SLA.
+     * Severidade mínima que impacta o SLA.
      * 0 = Não classificada, 1 = Informação, 2 = Atenção,
      * 3 = Média, 4 = Alta, 5 = Desastre.
      *
-     * Por padrão, só Média/Alta/Desastre derrubam o SLA. Se quiser que
-     * Atenção também conte, mude para 2.
+     * Para um relatório executivo, o padrão é Alta (4): só problemas Alto e
+     * Desastre são tratados como indisponibilidade do serviço. Mude para 3
+     * se quiser que "Média" também derrube o SLA.
      */
-    public const SLA_MIN_SEVERITY = 3;
+    public const SLA_MIN_SEVERITY = 4;
+
+    /**
+     * Modo de cálculo do SLA:
+     *  - 'severity': qualquer problema com severidade >= SLA_MIN_SEVERITY
+     *                conta como downtime (padrão, mais assertivo);
+     *  - 'icmp':     apenas eventos de ICMP/ping sem resposta contam
+     *                (comportamento legado, mais drástico e restrito).
+     */
+    public const SLA_MODE = 'severity';
 
     /**
      * SLA de uma única categoria (host group).
@@ -102,12 +121,15 @@ class Sla {
             return 100.0;
         }
 
-        $events = array_values(array_filter($events, function ($event) {
-            return Availability::isIcmpUnavailableEvent($event);
-        }));
+        // No modo ICMP, restringe apenas a quedas de ping (comportamento legado).
+        if (self::SLA_MODE === 'icmp') {
+            $events = array_values(array_filter($events, function ($event) {
+                return Availability::isIcmpUnavailableEvent($event);
+            }));
 
-        if (!$events) {
-            return 100.0;
+            if (!$events) {
+                return 100.0;
+            }
         }
 
         // Busca o clock de resolução de cada evento resolvido.

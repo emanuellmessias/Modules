@@ -5,6 +5,8 @@ namespace Modules\ExecutiveReport\Actions;
 use CController;
 use CControllerResponseData;
 
+use CWebUser;
+
 use Modules\ExecutiveReport\Classes\Client;
 use Modules\ExecutiveReport\Classes\ExecutiveReport;
 use Modules\ExecutiveReport\Classes\Security;
@@ -69,6 +71,12 @@ class ReportView extends CController {
                  * Lista de clientes
                  */
                 'clients' => Client::getAll(),
+
+                /*
+                 * Indica se o usuário é Super Admin (libera troca de cliente
+                 * mesmo quando existe apenas um cliente cadastrado).
+                 */
+                'is_admin' => (CWebUser::$data['type'] ?? 0) == USER_TYPE_SUPER_ADMIN,
 
                 /*
                  * Cliente selecionado

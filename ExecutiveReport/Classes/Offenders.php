@@ -4,6 +4,14 @@ namespace Modules\ExecutiveReport\Classes;
 
 class Offenders {
 
+    /**
+     * Severidade mínima considerada para a seção de Indisponibilidade ICMP.
+     * Quedas de ping são geralmente High/Disaster; mantemos um piso próprio
+     * (Média) para não depender da configuração do SLA por severidade e
+     * ainda assim capturar todos os eventos relevantes de ICMP.
+     */
+    private const ICMP_MIN_SEVERITY = 3;
+
     public static function getByClient(int $groupid, int $period_days = 30, int $limit = 10): array {
 
         if ($groupid <= 0) {
@@ -27,7 +35,8 @@ class Offenders {
             'output' => ['hostid', 'name'],
             'groupids' => $category_ids,
             'filter' => ['status' => 0],
-            'selectGroups' => ['groupid', 'name']
+            // Zabbix 7.0+ renomeou "selectGroups" para "selectHostGroups".
+            'selectHostGroups' => ['groupid', 'name']
         ]);
 
         if (!$hosts) {
@@ -45,7 +54,10 @@ class Offenders {
             $host_names[$hostid] = $host['name'];
             $host_categories[$hostid] = '';
 
-            foreach (($host['groups'] ?? []) as $group) {
+            // Zabbix 7.0+ retorna "hostgroups"; versões anteriores, "groups".
+            $host_groups = $host['hostgroups'] ?? $host['groups'] ?? [];
+
+            foreach ($host_groups as $group) {
                 $host_groupid = (string)$group['groupid'];
 
                 if (isset($category_names[$host_groupid])) {
@@ -64,7 +76,7 @@ class Offenders {
             'source' => EVENT_SOURCE_TRIGGERS,
             'object' => EVENT_OBJECT_TRIGGER,
             'value' => TRIGGER_VALUE_TRUE,
-            'severities' => range(Sla::SLA_MIN_SEVERITY, TRIGGER_SEVERITY_DISASTER),
+            'severities' => range(self::ICMP_MIN_SEVERITY, TRIGGER_SEVERITY_DISASTER),
             'time_from' => $time_from,
             'time_till' => $time_till,
             'selectHosts' => ['hostid', 'name']

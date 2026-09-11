@@ -35,8 +35,7 @@ class Health {
 
         $problems = \API::Problem()->get([
             'hostids' => $hostids,
-            'output' => ['severity'],
-            'severities' => [TRIGGER_SEVERITY_DISASTER]
+            'output' => ['severity']
         ]);
 
         foreach ($problems as $problem) {
