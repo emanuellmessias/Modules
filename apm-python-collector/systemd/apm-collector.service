@@ -1,0 +1,18 @@
+[Unit]
+Description=APM collector para Zabbix (Prometheus -> zabbix_sender)
+Documentation=https://github.com/emanuellmessias/Modules/tree/main/apm-python-collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Ajuste o usuario: normalmente 'zabbix' no proxy.
+User=zabbix
+Group=zabbix
+ExecStart=/usr/bin/python3 /opt/apm-collector/apm_collector.py --config /etc/zabbix/apm_collector.yaml
+# Endurecimento basico.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/tmp

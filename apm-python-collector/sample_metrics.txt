@@ -1,0 +1,16 @@
+# HELP http_server_requests_seconds Duration of HTTP server request handling
+# TYPE http_server_requests_seconds summary
+http_server_requests_seconds_count{method="GET",status="200",uri="/api/users"} 1500
+http_server_requests_seconds_sum{method="GET",status="200",uri="/api/users"} 375.0
+http_server_requests_seconds_count{method="POST",status="201",uri="/api/users"} 300
+http_server_requests_seconds_sum{method="POST",status="201",uri="/api/users"} 120.0
+http_server_requests_seconds_count{method="GET",status="500",uri="/api/orders"} 42
+http_server_requests_seconds_sum{method="GET",status="500",uri="/api/orders"} 63.0
+http_server_requests_seconds_count{method="GET",status="200",uri="/api/orders"} 8000
+http_server_requests_seconds_sum{method="GET",status="200",uri="/api/orders"} 1600.0
+http_server_requests_seconds_count{method="GET",status="200",uri="/actuator/health"} 99999
+http_server_requests_seconds_sum{method="GET",status="200",uri="/actuator/health"} 100.0
+# HELP jvm_memory_used_bytes Used bytes of a given JVM memory area
+# TYPE jvm_memory_used_bytes gauge
+jvm_memory_used_bytes{area="heap",id="G1 Eden Space"} 134217728
+jvm_memory_used_bytes{area="heap",id="G1 Old Gen"} 268435456

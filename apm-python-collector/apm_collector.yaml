@@ -1,0 +1,48 @@
+# Configuracao do coletor APM para Zabbix.
+# Copie para /etc/zabbix/apm_collector.yaml e ajuste.
+# Aceita YAML (se PyYAML instalado) ou JSON.
+
+# Endpoint de metricas Prometheus da aplicacao monitorada.
+metrics_url: "http://127.0.0.1:8080/actuator/prometheus"
+http_timeout: 10
+http_headers: {}
+  # Authorization: "Bearer XXXX"
+
+# Para onde enviar: server OU proxy Zabbix.
+zabbix_server: "127.0.0.1"
+zabbix_port: 10051
+zabbix_sender: "zabbix_sender"
+
+# Nome do host como cadastrado no Zabbix (os itens pertencem a ele).
+zabbix_host: "APM Application"
+
+# Nomes de metrica/label (ajuste ao seu framework):
+#   Spring/Micrometer: http_server_requests_seconds_{count,sum}, labels uri/method/status
+#   Node prom-client / Python / Go: http_request_duration_seconds_{count,sum}, labels route/method/code
+metric_requests: "http_server_requests_seconds_count"
+metric_latency_sum: "http_server_requests_seconds_sum"
+metric_latency_count: "http_server_requests_seconds_count"
+label_uri: "uri"
+label_method: "method"
+label_status: "status"
+
+# Filtros de rota (regex).
+uri_include: ".*"
+uri_exclude: "^(/actuator.*|/favicon\\.ico|/metrics)$"
+
+# Metricas de saturacao (valor direto). name_prometheus -> chave_item_zabbix
+saturation_metrics: {}
+  # jvm_memory_used_bytes: "apm.jvm.memory.used"
+  # process_cpu_seconds_total: "apm.process.cpu"
+
+# Arquivo de estado (para calcular taxas por segundo entre execucoes).
+state_file: "/var/tmp/apm_collector_state.json"
+
+# Chaves de item no Zabbix (devem existir no host/template).
+keys:
+  discovery: "apm.discovery"
+  requests_rate: "apm.requests.rate"
+  latency_avg: "apm.latency.avg"
+  errors_rate: "apm.errors.rate"
+  up: "apm.up"
+  scrape_ms: "apm.scrape.ms"
